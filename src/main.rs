@@ -1,7 +1,7 @@
-#[allow(non_snake_case)]
 extern crate peroxide;
 use peroxide::*;
 
 fn main() {
-    println!("Hello, world!");
+    let a = matrix!(1;4;1, 2, 2, Row);
+    a.print();
 }
