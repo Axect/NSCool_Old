@@ -18,9 +18,9 @@ pub trait ERK4 {
 }
 
 pub trait GL4 {
-    fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE;
-    fn implicit_update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
-    fn implicit_integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
+    fn gl_new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE;
+    fn gl_update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
+    fn gl_integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
 }
 
 impl ERK4 for ODE {
@@ -93,7 +93,7 @@ impl ERK4 for ODE {
 }
 
 impl GL4 for ODE {
-    fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE {
+    fn gl_new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE {
         let l = init_val.len();
 
         let v1_temp1 = vec![init_param]; // len = 1
@@ -115,7 +115,7 @@ impl GL4 for ODE {
         }
     }
 
-    fn implicit_update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64> {
+    fn gl_update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64> {
         let t = self.param;
         let ys = self.values.clone();
         let h = self.step;
@@ -132,7 +132,7 @@ impl GL4 for ODE {
         unimplemented!()
     }
 
-    fn implicit_integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64> {
+    fn gl_integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64> {
         unimplemented!()
     }
 }
