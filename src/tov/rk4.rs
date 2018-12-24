@@ -2,7 +2,7 @@ extern crate peroxide;
 use peroxide::*;
 
 #[derive(Debug)]
-pub struct RK4 {
+pub struct ODE {
     pub param: f64,
     pub values: Vec<f64>,
     pub step: f64,
@@ -11,16 +11,27 @@ pub struct RK4 {
     pub num: usize,
 }
 
+pub trait ERK4 {
+    fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE;
+    fn update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
+    fn integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
+}
 
-impl RK4 {
-    pub fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> RK4 {
+pub trait GL4 {
+    fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE;
+    fn implicit_update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
+    fn implicit_integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64>;
+}
+
+impl ERK4 for ODE {
+    fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE {
         let l = init_val.len();
 
         let v1_temp1 = vec![init_param]; // len = 1
         let v1_temp2 = init_val.clone(); // len = l
         let v1 = c!(v1_temp1; v1_temp2);
         let v2 = vec![0f64; (l+1) * (num)];
-        RK4 {
+        ODE {
             param: init_param,
             values: init_val,
             step: step,
@@ -35,7 +46,7 @@ impl RK4 {
         }
     }
 
-    pub fn update<F>(&mut self, f: &F)
+    fn update<F>(&mut self, f: &F)
         where F: Fn(f64, Vec<f64>) -> Vec<f64> {
         let t = self.param;
         let ys = self.values.clone();
@@ -73,10 +84,56 @@ impl RK4 {
         }
     }
 
-    pub fn integrate<F>(&mut self, f: F)
+    fn integrate<F>(&mut self, f: F)
         where F: Fn(f64, Vec<f64>) -> Vec<f64> {
         for _i in 0 .. self.num {
             self.update(&f);
         }
     }
 }
+
+impl GL4 for ODE {
+    fn new(init_param: f64, init_val: Vec<f64>, step: f64, num: usize) -> ODE {
+        let l = init_val.len();
+
+        let v1_temp1 = vec![init_param]; // len = 1
+        let v1_temp2 = init_val.clone(); // len = l
+        let v1 = c!(v1_temp1; v1_temp2);
+        let v2 = vec![0f64; (l+1) * (num)];
+        ODE {
+            param: init_param,
+            values: init_val,
+            step: step,
+            records: matrix(
+                c!(v1; v2),
+                num+1, // Original Value
+                l+1, // param + ys
+                Row,
+            ),
+            stage: 0,
+            num: num,
+        }
+    }
+
+    fn implicit_update<F>(&mut self, f: &F) where F: Fn(f64, Vec<f64>) -> Vec<f64> {
+        let t = self.param;
+        let ys = self.values.clone();
+        let h = self.step;
+
+        let mnum_11: f64 = 0.5 - 3f64.sqrt()/6f64;
+        let mnum_12: f64 = 0.25 - 3f64.sqrt()/6f64;
+        let mnum_21: f64 = 0.5 + 3f64.sqrt()/6f64;
+        let mnum_22: f64 = 0.25 + 3f64.sqrt()/6f64;
+
+        let t_1 = t + mnum_11 * h;
+        let t_2 = t + mnum_21 * h;
+
+
+        unimplemented!()
+    }
+
+    fn implicit_integrate<F>(&mut self, f: F) where F: Fn(f64, Vec<f64>) -> Vec<f64> {
+        unimplemented!()
+    }
+}
+
