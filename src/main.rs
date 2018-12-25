@@ -2,6 +2,7 @@ extern crate peroxide;
 use peroxide::*;
 
 #[allow(non_snake_case)]
+use NSCool::tov::ode::*;
 use NSCool::tov::rk4::*;
 
 use std::f64::consts::PI;
