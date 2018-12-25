@@ -2,11 +2,33 @@ extern crate peroxide;
 use peroxide::*;
 
 pub fn main() {
-    let x1 = 1f64;
-    let x2 = 1f64;
-    let x3 = 1f64;
-    
-    println!("Hello");
+    let x = c!(1,1,1);
+
+    let j = jacobian(x.clone(), fs);
+    println!("Jacobian:");
+    j.print();
+    println!("");
+
+    let pqlu = j.lu().unwrap();
+
+    println!("{:?}", pqlu.p);
+    println!("{:?}", pqlu.q);
+    pqlu.l.print();
+    pqlu.u.print();
+
+    j.det().print();
+
+    println!("Pseudo inverse of Jacobian:");
+    j.pseudo_inv().unwrap().print();
+    println!("");
+
+    println!("Function apply x:");
+    println!("{:?}", fs(dualize(x.clone())));
+    println!("");
+
+
+    let new_x = update(x, &fs);
+    new_x.print();
 }
 
 fn f(x1: Dual, x2: Dual, x3: Dual) -> Dual {
@@ -21,26 +43,40 @@ fn h(x1: Dual, x2: Dual, x3: Dual) -> Dual {
     20.*x3 + (-x1 * x2).exp() + 9f64
 }
 
-fn jacobian<F>(x1: f64, x2: f64, x3: f64, f: F, g: F, h: F) -> Matrix 
-    where F: Fn(Dual, Dual, Dual) -> Dual
-{
-    let (x1_var, x1_const) = var_const(x1);
-    let (x2_var, x2_const) = var_const(x2);
-    let (x3_var, x3_const) = var_const(x3);
+fn fs(xs: Vec<Dual>) -> Vec<Dual> {
+    let x1 = xs[0];
+    let x2 = xs[1];
+    let x3 = xs[2];
 
-    let x_var = vec![x1_var, x2_var, x3_var];
-    let x_const = vec![x1_const, x2_const, x3_const];
-    let f_list = vec![f, g, h];
+    vec![f(x1, x2, x3), g(x1, x2, x3), h(x1, x2, x3)]
+}
+
+fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
+    where F: Fn(Vec<Dual>) -> Vec<Dual>
+{
+    let x_var = x.clone().into_iter()
+        .map(|t| Dual::new(t, 1.))
+        .collect::<Vec<Dual>>();
+    let x_const = x.clone().into_iter()
+        .map(|t| Dual::new(t, 0.))
+        .collect::<Vec<Dual>>();
 
     let mut j = matrix(vec![0f64; 9], 3, 3, Row);
 
-    for i in 0 .. 3 {
+    let mut vec_temp = x_const.clone();
 
-        for j in 0 .. 3 {
-            
+    for i in 0 .. 3 {
+        vec_temp[i] = x_var[i];
+        let dual_temp = f(vec_temp.clone());
+        let slope_temp = dual_temp.into_iter()
+            .map(|dx| dx.slope())
+            .collect::<Vec<f64>>();
+        for k in 0 .. 3 {
+            j[(k, i)] = slope_temp[k];
         }
+        vec_temp = x_const.clone();
     }
-    unimplemented!()
+    j
 }
 
 fn extract(x: Dual) -> (f64, f64) {
@@ -49,4 +85,19 @@ fn extract(x: Dual) -> (f64, f64) {
 
 fn var_const(x: f64) -> (Dual, Dual) {
     (Dual::new(x, 1.), Dual::new(x, 0.))
+}
+
+fn update(x: Vec<f64>, f: &Fn(Vec<Dual>) -> Vec<Dual>) -> Vec<f64> {
+    let j = jacobian(x.clone(), f);
+    let x_dual = dualize(x.clone());
+    let fx = f(x_dual).into_iter().map(|t| t.value()).collect::<Vec<f64>>();
+
+    let target = (j.pseudo_inv().unwrap() % fx);
+    target.print();
+
+    x.sub(&target.col(0))
+}
+
+fn dualize(xs: Vec<f64>) -> Vec<Dual> {
+    xs.into_iter().map(|x| Dual::new(x, 0.)).collect::<Vec<Dual>>()
 }
