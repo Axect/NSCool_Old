@@ -9,13 +9,6 @@ pub fn main() {
     j.print();
     println!("");
 
-    let pqlu = j.lu().unwrap();
-
-    println!("{:?}", pqlu.p);
-    println!("{:?}", pqlu.q);
-    pqlu.l.print();
-    pqlu.u.print();
-
     j.det().print();
 
     println!("Pseudo inverse of Jacobian:");
