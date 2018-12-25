@@ -1,5 +1,6 @@
 extern crate peroxide;
 use peroxide::*;
+use NSCool::tov::ode::jacobian;
 
 pub fn main() {
     let x = c!(1,1,1);
@@ -20,8 +21,13 @@ pub fn main() {
     println!("");
 
 
-    let new_x = update(x, &fs);
+    let mut new_x = update(x, &fs);
     new_x.print();
+
+    for _i in 0 .. 9 {
+        new_x = update(new_x, &fs);
+        new_x.print();
+    }
 }
 
 fn f(x1: Dual, x2: Dual, x3: Dual) -> Dual {
@@ -44,33 +50,33 @@ fn fs(xs: Vec<Dual>) -> Vec<Dual> {
     vec![f(x1, x2, x3), g(x1, x2, x3), h(x1, x2, x3)]
 }
 
-fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
-    where F: Fn(Vec<Dual>) -> Vec<Dual>
-{
-    let x_var = x.clone().into_iter()
-        .map(|t| Dual::new(t, 1.))
-        .collect::<Vec<Dual>>();
-    let x_const = x.clone().into_iter()
-        .map(|t| Dual::new(t, 0.))
-        .collect::<Vec<Dual>>();
-
-    let mut j = matrix(vec![0f64; 9], 3, 3, Row);
-
-    let mut vec_temp = x_const.clone();
-
-    for i in 0 .. 3 {
-        vec_temp[i] = x_var[i];
-        let dual_temp = f(vec_temp.clone());
-        let slope_temp = dual_temp.into_iter()
-            .map(|dx| dx.slope())
-            .collect::<Vec<f64>>();
-        for k in 0 .. 3 {
-            j[(k, i)] = slope_temp[k];
-        }
-        vec_temp = x_const.clone();
-    }
-    j
-}
+//fn jacobian<F>(x: Vec<f64>, f: F) -> Matrix
+//    where F: Fn(Vec<Dual>) -> Vec<Dual>
+//{
+//    let x_var = x.clone().into_iter()
+//        .map(|t| Dual::new(t, 1.))
+//        .collect::<Vec<Dual>>();
+//    let x_const = x.clone().into_iter()
+//        .map(|t| Dual::new(t, 0.))
+//        .collect::<Vec<Dual>>();
+//
+//    let mut j = matrix(vec![0f64; 9], 3, 3, Row);
+//
+//    let mut vec_temp = x_const.clone();
+//
+//    for i in 0 .. 3 {
+//        vec_temp[i] = x_var[i];
+//        let dual_temp = f(vec_temp.clone());
+//        let slope_temp = dual_temp.into_iter()
+//            .map(|dx| dx.slope())
+//            .collect::<Vec<f64>>();
+//        for k in 0 .. 3 {
+//            j[(k, i)] = slope_temp[k];
+//        }
+//        vec_temp = x_const.clone();
+//    }
+//    j
+//}
 
 fn extract(x: Dual) -> (f64, f64) {
     (x.value(), x.slope())
@@ -86,7 +92,6 @@ fn update(x: Vec<f64>, f: &Fn(Vec<Dual>) -> Vec<Dual>) -> Vec<f64> {
     let fx = f(x_dual).into_iter().map(|t| t.value()).collect::<Vec<f64>>();
 
     let target = (j.pseudo_inv().unwrap() % fx);
-    target.print();
 
     x.sub(&target.col(0))
 }
