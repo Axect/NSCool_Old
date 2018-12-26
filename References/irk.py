@@ -28,7 +28,7 @@ class irk(object):
         # ---+--------------
         #    |  b1 . . .  bn
         
-        self.r = polyroots(cf)
+        self.r = polyroots(cf) # Root of Legendre polynomial
         A1 = matrix(rang)
         for j in range(n):
             for k in range(n):
@@ -36,7 +36,7 @@ class irk(object):
         
         bn = []
         for j in range(n):
-            bn.append(mpf(1.0) / mpf(j+1))
+            bn.append(mpf(1.0) / mpf(j+1)) # Uniformly divide
         B = matrix(bn)
         
         self.b = lu_solve(A1, B)
@@ -52,4 +52,38 @@ class irk(object):
                 an = lu_solve(A1, cil)
                 for k in range(n):
                     self.a[i-1,k] = an[k]
+
+    def init(self, f, t, h, initvalues):
+        self.size = len(initvalues)
+        self.f = f
+        self.t = t
+        self.h = h
+        self.yb = matrix(initvalues)
+        self.ks = matrix(self.size, self.rang)
+        for k in range(self.size):
+            for i in range(self.rang):
+                self.ks[k,i] = self.r[i]
+        self.tn = matrix(1, self.rang)
+        for i in range(self.rang):
+            self.tn[i] = t + hj*self.r[i]
+        self.y = matrix(self.size, self.rang)
+        for k in range(self.size):
+            for i in range(self.rang):
+                self.y[k,i] = self.yb[k]
+                temp = mpf(0.0)
+                for j in range(self.rang):
+                    temp += self.a[i, j]*self.ks[k,j]
+                self.y[k,i] += temp
+        self.yn = matrix(self.yb)
+
+    def iterate(self, tn, y, yn, ks):
+        # Generates the coefficients of the implicit Runge-Kutta scheme for the given step
+        # with the method of the simple iteration with an initial value, coninciding with the coefficients,
+        # calculated at the previous step. At sufficiently small step this must
+        # work. There exists such a value of the step, Under which convergence is guaranteed.
+        # No automatic re-setup of the step is foreseen in this procedure.
+        mp.dps = self.acc
+        y0 = matrix(yn)
+        norme = mpf(1.0)
+        eps0 = sqrt(eps)
 
