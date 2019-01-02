@@ -1,6 +1,5 @@
 extern crate peroxide;
 use peroxide::*;
-use NSCool::tov::ode::jacobian;
 
 pub fn main() {
     let x = c!(1,1,1);

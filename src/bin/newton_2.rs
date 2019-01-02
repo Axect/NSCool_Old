@@ -1,8 +1,6 @@
 extern crate peroxide;
 use peroxide::*;
 
-use NSCool::tov::ode::jacobian;
-
 pub fn main() {
     let mut x = c!(1,2,3);
     let j = jacobian(x.clone(), f);
