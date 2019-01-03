@@ -10,9 +10,15 @@
 ### Numeric
 - [x] Implement Explicit RK4
 - [ ] Apply ERK4 to TOV eq
-- [ ] Implement GL4 or GL6
+- [x] Implement Implicit Method
+    - [x] Backward Euler Method
+    - [ ] GL4
+    - [ ] DIRK
 
 
+## 2018.01.03
+
+* Implement BDF1 (Backward Euler Method)
 
 ## 2018.12.23
 
@@ -26,4 +32,5 @@
     * Study RK
         * Explicit RK4
         * Implicit RK
+            * Backward Euler
             * Gauss-Legendre
