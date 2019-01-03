@@ -10,4 +10,3 @@ pub struct ODE {
     pub stage: usize,
     pub num: usize,
 }
-

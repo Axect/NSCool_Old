@@ -1,4 +1,5 @@
 extern crate peroxide;
+
 use peroxide::*;
 
 #[allow(non_snake_case)]
@@ -8,7 +9,7 @@ use NSCool::tov::rk4::*;
 use std::f64::consts::PI;
 
 const K: f64 = 100f64;
-const GAMMA: i32 = 2;
+const GAMMA: usize = 2;
 const GAMMAF: f64 = 2f64;
 
 #[allow(unused_must_use_variable)]
@@ -35,28 +36,28 @@ pub fn main() {
 //    tov_solver.records.write("tov.csv");
 //}
 
-fn tov_derivative(r: f64, rs: Vec<f64>) -> Vec<f64> {
-    let r2 = r.powi(2);
-    let r3 = r.powi(3);
-
-    let m_old = rs[0];
-    let phi_old = rs[1];
-    let rho_old = rs[2];
-
-    let rho2 = rho_old.powi(2);
-    let rho_gamma = rho_old.powi(GAMMA);
-
-    let m_new = 4f64*PI*r2*rho_old;
-    let phi_new = phi_old
-        + (4f64*PI*K*r3 * rho_gamma + m_old)
-        / (r2 - 2f64*r*m_old);
-    let rho_new = -(4f64*PI*K*K*r3 * rho_old.powi(GAMMA+1)
-        + m_old
-        + (4f64*PI*K*r3*rho2 + K*m_old*rho_old))
-        / ((GAMMAF*K*r2 - 2f64*GAMMAF*K*r*m_old));
-
-    vec![m_new, phi_new, rho_new]
-}
+//fn tov_derivative(r: f64, rs: Vec<f64>) -> Vec<f64> {
+//    let r2 = r.powi(2);
+//    let r3 = r.powi(3);
+//
+//    let m_old = rs[0];
+//    let phi_old = rs[1];
+//    let rho_old = rs[2];
+//
+//    let rho2 = rho_old.powi(2);
+//    let rho_gamma = rho_old.powi(GAMMA);
+//
+//    let m_new = 4f64*PI*r2*rho_old;
+//    let phi_new = phi_old
+//        + (4f64*PI*K*r3 * rho_gamma + m_old)
+//        / (r2 - 2f64*r*m_old);
+//    let rho_new = -(4f64*PI*K*K*r3 * rho_old.powi(GAMMA+1)
+//        + m_old
+//        + (4f64*PI*K*r3*rho2 + K*m_old*rho_old))
+//        / ((GAMMAF*K*r2 - 2f64*GAMMAF*K*r*m_old));
+//
+//    vec![m_new, phi_new, rho_new]
+//}
 
 fn tov_derivative_dual(rs: Vec<Dual>) -> Vec<Dual> {
     let r = rs[0];
@@ -68,16 +69,14 @@ fn tov_derivative_dual(rs: Vec<Dual>) -> Vec<Dual> {
     let rho_old = rs[3];
 
     let rho2 = rho_old.pow(2);
-    let rho_gamma = rho_old.pow(GAMMA as usize);
+    let rho_gamma = rho_old.pow(GAMMA);
 
-    let m_new = 4f64*PI*r2*rho_old;
-    let phi_new = phi_old
-        + (4f64*PI*K*r3 * rho_gamma + m_old)
-        / (r2 - 2f64*r*m_old);
-    let rho_new = -(4f64*PI*K*K*r3 * rho_old.pow(GAMMA as usize + 1)
+    let m_new = 4f64 * PI * r2 * rho_old;
+    let phi_new = phi_old + (4f64 * PI * K * r3 * rho_gamma + m_old) / (r2 - 2f64 * r * m_old);
+    let rho_new = -(4f64 * PI * K * K * r3 * rho_old.pow(GAMMA + 1)
         + m_old
-        + (4f64*PI*K*r3*rho2 + K*m_old*rho_old))
-        / ((GAMMAF*K*r2 - 2f64*GAMMAF*K*r*m_old));
+        + (4f64 * PI * K * r3 * rho2 + K * m_old * rho_old))
+        / (GAMMAF * K * r2 - 2f64 * GAMMAF * K * r * m_old);
 
     vec![m_new, phi_new, rho_new]
 }
