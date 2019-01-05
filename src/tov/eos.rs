@@ -1,6 +1,3 @@
-extern crate peroxide;
-use peroxide::*;
-
 use std::f64::consts::PI;
 
 pub const K: f64 = 100.;
