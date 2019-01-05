@@ -26,7 +26,7 @@ pub fn main() {
     }
 
     let new_data = records.data.into_iter().take(idx * 4).collect::<Vec<f64>>();
-    matrix(new_data, idx, 4, Row).write("data/tov_rk4.csv");
+    matrix(new_data, idx, 4, Row).write("data/tov_rk4.csv").expect("Something Wrong");
 }
 
 // TOV
