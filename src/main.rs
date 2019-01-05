@@ -3,20 +3,30 @@ extern crate peroxide;
 use peroxide::*;
 
 #[allow(non_snake_case)]
-use NSCool::tov::ode::*;
-use NSCool::tov::rk4::*;
+use NSCool::tov::eos::*;
 
 use std::f64::consts::PI;
 
-const K: f64 = 100f64;
-const GAMMA: usize = 2;
-const GAMMAF: f64 = 2f64;
-
-#[allow(unused_must_use_variable)]
 pub fn main() {
-    let init_val = c!(1e-16, 0, 0, 1.28e-3);
-    let results = bdf1(init_val, tov_derivative_dual, 1e-3, 1e-15, 16_000);
-    results.write("data/tov_dual.csv");
+    let p_c = K*RHO0C.powf(GAMMAF);
+    let init_val = c!(0, 0, 0, p_c);
+    let mut records = zeros(16_000 + 1, 4);
+    records.subs_row(0, init_val.clone());
+
+    let mut next_val = one_step_rk(init_val, tov_rhs, 1e-3);
+    let mut idx: usize = 16_000;
+    
+    for i in 1 .. 16001 {
+        records.subs_row(i, next_val.clone());
+        next_val = one_step_rk(next_val.clone(), tov_rhs, 1e-3);
+        if next_val[3] <= 0f64 {
+            idx = i;
+            break;
+        }
+    }
+
+    let new_data = records.data.into_iter().take(idx * 4).collect::<Vec<f64>>();
+    matrix(new_data, idx, 4, Row).write("data/tov_rk4.csv");
 }
 
 // TOV
