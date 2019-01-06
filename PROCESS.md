@@ -9,12 +9,15 @@
 
 ### Numeric
 - [x] Implement Explicit RK4
-- [ ] Apply ERK4 to TOV eq
+- [x] Apply ERK4 to TOV eq
 - [x] Implement Implicit Method
     - [x] Backward Euler Method
     - [ ] GL4
     - [ ] DIRK
 
+## 2018.01.05
+
+* Complete to solve TOV (by RK4)
 
 ## 2018.01.03
 
