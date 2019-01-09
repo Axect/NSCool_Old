@@ -1,4 +1,5 @@
 use std::f64::consts::PI;
+use crate::consts::consts::*;
 
 pub const K: f64 = 100.;
 pub const GAMMA: usize = 2;
@@ -60,4 +61,9 @@ pub fn rho_of_p(p: f64) -> f64 {
     }
 
     (p_result/K).powf(1.0/GAMMAF) + p_result / (GAMMAF - 1.0)
+}
+
+pub fn nb_of_p(p: f64) -> f64 {
+    let m_u = cgs_to_geom(CGS.m_u, Dimension::Mass);
+    (p / K).powf(1.0 / GAMMAF) / m_u
 }
