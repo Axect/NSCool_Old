@@ -1,3 +1,6 @@
+extern crate peroxide;
+use peroxide::*;
+
 use std::f64::consts::PI;
 use crate::consts::consts::*;
 
@@ -18,52 +21,18 @@ pub const RHO0C: f64 = 1.28e-3;
 /// ρ = ρ_0(1 + ε)
 /// m = 0, P = P_c at r = 0
 /// ```
-pub fn tov_rhs(rs: Vec<f64>) -> Vec<f64> {
-    let r = rs[0];
-    let r2 = r.powi(2);
-
-    let m_old = rs[1];
-    let _phi_old = rs[2];
-    let p_old = rs[3];
-
-    let rho_old = rho_of_p(p_old);
-
-    let m_r: f64;
-    let m_rr: f64;
-    let m_rrr: f64;
-
-    // Using Taylor Series m = 1/6 m'''(0) r^3
-    if r < 1e-3 {
-        m_rrr = 4.0/3.0 * PI * (RHO0C.powi(2)/(GAMMAF - 1.)
-                                + 4f64.powf(-1./GAMMAF) * (RHO0C).powf(2./GAMMAF));
-        m_rr = m_rrr * r;
-        m_r = m_rr * r;
-    } else {
-        m_r = m_old / r;
-        m_rr = m_r / r;
-        m_rrr = m_rr / r;
-    }
-
-    let m_new = 4f64 * PI * r2 * rho_old;
-    let p_new = - rho_old * m_rr * (1.0 + p_old/rho_old) 
-        * (1.0 + 4.0*PI*p_old / m_rrr)
-        * 1.0/(1.0 - 2.0*m_r);
-    let phi_new = - 1.0/rho_old * p_new / (1.0 + p_old/rho_old);
-
-    vec![m_new, phi_new, p_new]
-}
-
-pub fn rho_of_p(p: f64) -> f64 {
-    let mut p_result = p;
+pub fn tov_rhs(r: Dual, rs: Vec<Dual>) -> Vec<Dual> {
+    let m_old = rs[0];
+    let _phi_old = rs[1];
+    let p_old = rs[2];
     
-    if p < 0.0 {
-        p_result = p.abs();
-    }
+    let rho_0 = (p_old / K).powf(1. / GAMMAF);
+    let rho_old = rho_0 + p_old / (GAMMAF - 1f64);
 
-    (p_result/K).powf(1.0/GAMMAF) + p_result / (GAMMAF - 1.0)
-}
+    let dm = 4f64 * PI * r.pow(2) * rho_old;
 
-pub fn nb_of_p(p: f64) -> f64 {
-    let m_u = cgs_to_geom(CGS.m_u, Dimension::Mass);
-    (p / K).powf(1.0 / GAMMAF) / m_u
+    let dphi = if r.value() != 0f64 { (m_old + 4f64 * PI * r.pow(3) * p_old) / (r.pow(2) * (1f64 - 2f64 * m_old / r)) } else { dual(0, 0) };
+    let dp = if r.value() != 0f64 {- (rho_old + p_old) * (m_old + 4f64 * PI * r.pow(3) * p_old) / (r.pow(2) * (1f64 - 2f64 * m_old / r)) } else { dual(0, 0) };
+
+    vec![dm, dphi, dp]
 }
