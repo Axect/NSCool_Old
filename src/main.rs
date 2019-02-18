@@ -11,8 +11,8 @@ fn main() {
 
     let solar = 2E+33;
     let electron = 9.109E-28;
-    cgs_to_geom(solar, Mass).print();
-    (cgs_to_natural(electron, Mass) / 1E+6).print(); // 0.51MeV
+    cgs_to_GeV(solar, Mass).print();
+    cgs_to_MeV(electron, Mass).print(); // 0.51MeV
     cgs_to_natural(CGS.c, Velocity).print();
     cgs_to_natural(CGS.hbar, AngularMomentum).print();
 }

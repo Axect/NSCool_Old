@@ -87,3 +87,41 @@ pub fn cgs_to_natural(value: f64, dim: Dimension) -> f64 {
         Density => value * CGS.c.powi(5) * CGS.hbar.powi(3) / CGS.eV.powi(4),
     }
 }
+
+pub fn cgs_to_MeV(value: f64, dim: Dimension) -> f64 {
+    match dim {
+        Time => value * (CGS.eV * 1e+6) / CGS.hbar,
+        Length => value * (CGS.eV * 1e+6) / (CGS.hbar * CGS.c),
+        Mass => value * CGS.c.powi(2) / (CGS.eV * 1e+6),
+        Velocity => value / CGS.c,
+        Momentum => value * CGS.c / (CGS.eV * 1e+6),
+        AngularVelocity => unimplemented!(),
+        AngularMomentum => value / CGS.hbar,
+        Acceleration => value * CGS.hbar / (CGS.c * (CGS.eV * 1e+6)),
+        Energy => value / (CGS.eV * 1e+6),
+        EnergyDensity => value * (CGS.hbar * CGS.c).powi(3) / (CGS.eV * 1e+6).powi(4),
+        Pressure => value * (CGS.hbar * CGS.c).powi(3) / (CGS.eV * 1e+6).powi(4),
+        Force => value * (CGS.hbar * CGS.c) / (CGS.eV * 1e+6).powi(2),
+        Power => value * CGS.hbar / (CGS.eV * 1e+6).powi(2),
+        Density => value * CGS.c.powi(5) * CGS.hbar.powi(3) / (CGS.eV * 1e+6).powi(4),
+    }
+}
+
+pub fn cgs_to_GeV(value: f64, dim: Dimension) -> f64 {
+    match dim {
+        Time => value * (CGS.eV * 1e+9) / CGS.hbar,
+        Length => value * (CGS.eV * 1e+9) / (CGS.hbar * CGS.c),
+        Mass => value * CGS.c.powi(2) / (CGS.eV * 1e+9),
+        Velocity => value / CGS.c,
+        Momentum => value * CGS.c / (CGS.eV * 1e+9),
+        AngularVelocity => unimplemented!(),
+        AngularMomentum => value / CGS.hbar,
+        Acceleration => value * CGS.hbar / (CGS.c * (CGS.eV * 1e+9)),
+        Energy => value / (CGS.eV * 1e+9),
+        EnergyDensity => value * (CGS.hbar * CGS.c).powi(3) / (CGS.eV * 1e+9).powi(4),
+        Pressure => value * (CGS.hbar * CGS.c).powi(3) / (CGS.eV * 1e+9).powi(4),
+        Force => value * (CGS.hbar * CGS.c) / (CGS.eV * 1e+9).powi(2),
+        Power => value * CGS.hbar / (CGS.eV * 1e+9).powi(2),
+        Density => value * CGS.c.powi(5) * CGS.hbar.powi(3) / (CGS.eV * 1e+9).powi(4),
+    }
+}
