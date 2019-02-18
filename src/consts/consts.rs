@@ -1,4 +1,9 @@
-use self::Dimension::*;
+pub use self::Dimension::*;
+
+pub enum UnitSystem {
+    CGS,
+    Geometrized
+}
 
 /// Fundamental Constants with various unit systems
 #[derive(Debug, Copy, Clone)]
@@ -9,7 +14,9 @@ pub struct Units {
     pub k_b: f64,
     pub N_A: f64,
     pub h: f64,
+    pub hbar: f64,
     pub m_u: f64,
+    pub eV: f64,
 }
 
 pub enum Dimension {
@@ -17,6 +24,7 @@ pub enum Dimension {
     Length,
     Mass,
     Velocity,
+    Momentum,
     AngularVelocity,
     Acceleration,
     Energy,
@@ -36,7 +44,9 @@ pub const CGS: Units = Units {
     k_b: 1.3806505e-16,  // Boltzmann constant (erg K^{-1})
     N_A: 6.0221415e+23,  // Avogadro constant (mol^{-1})
     h: 6.6260693e-27,    // Planck constant (erg s)
+    hbar: 1.05457266e-27,// Planck Constant (erg s)
     m_u: 1.66053886e-24, // Atomic mass unit (g)
+    eV: 1.60217733e-12,  // Electron Volt (erg)
 };
 
 pub fn cgs_to_geom(value: f64, dim: Dimension) -> f64 {
@@ -45,6 +55,7 @@ pub fn cgs_to_geom(value: f64, dim: Dimension) -> f64 {
         Length => value,
         Mass => value * CGS.G / CGS.c.powi(2),
         Velocity => value / CGS.c,
+        Momentum => value * CGS.G / CGS.c.powi(3),
         AngularVelocity => value / CGS.c,
         Acceleration => value / CGS.c.powi(2),
         Energy => value * CGS.G / CGS.c.powi(4),
@@ -54,5 +65,25 @@ pub fn cgs_to_geom(value: f64, dim: Dimension) -> f64 {
         Power => value * CGS.G / CGS.c.powi(5),
         Pressure => value * CGS.G / CGS.c.powi(4),
         Density => value * CGS.G / CGS.c.powi(2),
+    }
+}
+
+// R. L. Jaffe, Supplementary Notes for MIT's Quantum Theory Sequence
+pub fn cgs_to_natural(value: f64, dim: Dimension) -> f64 {
+    match dim {
+        Time => value * CGS.eV / CGS.hbar,
+        Length => value * CGS.eV / (CGS.hbar * CGS.c),
+        Mass => value * CGS.c.powi(2) / CGS.eV,
+        Velocity => value / CGS.c,
+        Momentum => value * CGS.c / CGS.eV,
+        AngularVelocity => unimplemented!(),
+        AngularMomentum => value / CGS.hbar,
+        Acceleration => value * CGS.hbar / (CGS.c * CGS.eV),
+        Energy => value / CGS.eV,
+        EnergyDensity => value * (CGS.hbar * CGS.c).powi(3) / CGS.eV.powi(4),
+        Pressure => value * (CGS.hbar * CGS.c).powi(3) / CGS.eV.powi(4),
+        Force => value * (CGS.hbar * CGS.c) / CGS.eV.powi(2),
+        Power => value * CGS.hbar / CGS.eV.powi(2),
+        Density => value * CGS.c.powi(5) * CGS.hbar.powi(3) / CGS.eV.powi(4),
     }
 }
