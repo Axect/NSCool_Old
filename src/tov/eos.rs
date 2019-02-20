@@ -7,7 +7,7 @@ use crate::consts::consts::*;
 // ===========================================================
 // Declare Constants
 // ===========================================================
-pub const K: f64 = 100.;
+pub const K: f64 = 300.;
 pub const GAMMA: usize = 2;
 pub const GAMMAF: f64 = 2.;
 pub const RHO0C: f64 = 0.4;
@@ -67,6 +67,13 @@ pub fn import_eos(title: &str, unit: UnitSystem) -> (Vec<f64>, Vec<f64>, Vec<f64
             (
                 rho_eos.fmap(|t| cgs_to_geom(t, Density)),
                 p_eos.fmap(|t| cgs_to_geom(t, Pressure)),
+                nbar_eos
+            )
+        },
+        UnitSystem::Natural => {
+            (
+                rho_eos.fmap(|t| cgs_to_natural(t, Density)),
+                p_eos.fmap(|t| cgs_to_natural(t, Pressure)),
                 nbar_eos
             )
         }

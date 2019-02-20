@@ -2,10 +2,12 @@ pub use self::Dimension::*;
 
 pub enum UnitSystem {
     CGS,
-    Geometrized
+    Geometrized,
+    Natural
 }
 
 /// Fundamental Constants with various unit systems
+#[allow(non_snake_case)]
 #[derive(Debug, Copy, Clone)]
 pub struct Units {
     pub c: f64,
@@ -88,6 +90,7 @@ pub fn cgs_to_natural(value: f64, dim: Dimension) -> f64 {
     }
 }
 
+#[allow(non_snake_case)]
 pub fn cgs_to_MeV(value: f64, dim: Dimension) -> f64 {
     match dim {
         Time => value * (CGS.eV * 1e+6) / CGS.hbar,
@@ -107,6 +110,7 @@ pub fn cgs_to_MeV(value: f64, dim: Dimension) -> f64 {
     }
 }
 
+#[allow(non_snake_case)]
 pub fn cgs_to_GeV(value: f64, dim: Dimension) -> f64 {
     match dim {
         Time => value * (CGS.eV * 1e+9) / CGS.hbar,
