@@ -16,7 +16,7 @@ fn main() {
 
 //
 //pub fn main() {
-//    let p_c = K*RHO0C.powf(GAMMAF);
+//    let p_c = K*RHO0C.wpowf(GAMMAF);
 //    let init_val = c!(0, 0, p_c);
 //    let mut records = solve_with_condition(tov_rhs, init_val, (0f64, 16f64), 1e-3, RK4, |xs| xs[2] >= 0f64);
 //    records.print();
