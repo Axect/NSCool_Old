@@ -78,10 +78,9 @@ pub fn tov_rhs(r: Dual, rs: Vec<Dual>) -> Vec<Dual> {
 /// Import eos
 ///
 /// # Column (Each units are CGS)
-/// ```
-///  Rho      Press       nbar       Ye         Ymu        Yn
-/// g/cm3   dyne/cm2     #/fm3     [A_cell]    [A_ion]     [Z]
-/// ```
+///
+///   Rho        Press         nbar        Ye         Ymu        Yn
+/// [g/cm3]   [dyne/cm2]     [#/fm3]     [A_cell]    [A_ion]     [Z]
 pub fn import_eos(title: &str, unit: UnitSystem) -> (Vec<f64>, Vec<f64>, Vec<f64>) {
     let m = Matrix::read(title, false, ' ').expect("Can't read file");
     let rho_eos = m.col(0);
