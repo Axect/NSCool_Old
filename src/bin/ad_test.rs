@@ -22,7 +22,7 @@ fn main() {
 
     let mut target = matrix(vec![t11.value(), t22.value()], 2, 1, Col);
 
-    let mut deltas = -jacobian.inv().unwrap() % target;
+    let mut deltas = -jacobian.inv().unwrap() * target;
 
     deltas.print();
 
@@ -49,7 +49,7 @@ fn main() {
         );
 
         target = matrix(c!(t11.value(), t21.value()), 2, 1, Col);
-        deltas = -jacobian.inv().unwrap() % target;
+        deltas = -jacobian.inv().unwrap() * target;
 
         k1_var = k1_var + deltas[(0, 0)];
         k2_var = k2_var + deltas[(1, 0)];
@@ -63,9 +63,9 @@ fn main() {
 }
 
 fn t1(k1: Dual, k2: Dual) -> Dual {
-    k1.pow(3) + k2 - 1.
+    k1.powi(3) + k2 - 1.
 }
 
 fn t2(k1: Dual, k2: Dual) -> Dual {
-    k2.pow(3) - k1 + 1.
+    k2.powi(3) - k1 + 1.
 }

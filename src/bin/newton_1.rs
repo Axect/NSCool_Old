@@ -34,7 +34,7 @@ fn f(x1: Dual, x2: Dual, x3: Dual) -> Dual {
 }
 
 fn g(x1: Dual, x2: Dual, x3: Dual) -> Dual {
-    4f64*x1.pow(2) -625.*x2.pow(2) + 2f64*x3 - 1f64
+    4f64*x1.powi(2) -625.*x2.powi(2) + 2f64*x3 - 1f64
 }
 
 fn h(x1: Dual, x2: Dual, x3: Dual) -> Dual {
@@ -90,7 +90,7 @@ fn update(x: Vec<f64>, f: &Fn(Vec<Dual>) -> Vec<Dual>) -> Vec<f64> {
     let x_dual = dualize(x.clone());
     let fx = f(x_dual).into_iter().map(|t| t.value()).collect::<Vec<f64>>();
 
-    let target = (j.pseudo_inv().unwrap() % fx);
+    let target = (j.pseudo_inv().unwrap() * fx);
 
     x.sub(&target.col(0))
 }
