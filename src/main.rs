@@ -1,7 +1,10 @@
+#![feature(proc_macro_hygiene)]
+extern crate inline_python;
 extern crate peroxide;
 extern crate natural_unit;
 use peroxide::*;
 use natural_unit::*;
+use inline_python::python;
 
 #[allow(non_snake_case)]
 use std::f64::consts::PI;
@@ -11,26 +14,23 @@ pub const K: f64 = 30000f64;
 pub const Gamma: f64 = 2f64;
 
 fn main() {
-    // Define new unit
+    // Define new unit (c=G=M=1)
     let c = CONSTANT_CGS.c;
     let G = CONSTANT_CGS.G;
     let M = CONSTANT_CGS.m_solar;
-
-    // c=G=M=1
     let cgs_to_geom = ConversionFactor::new(
         1f64 / M,
         c.powi(2) / (G*M),
         c.powi(3) / (G*M),
     );
 
+    // Set Initial Conditions
     let rho_c = convert(3.48E+15f64, Density, cgs_to_geom);
     let r_step = convert(10_000_00f64, Length, cgs_to_geom);
     let m_c = 0f64;
-
-    let solar_rad = convert(CONSTANT_CGS.r_solar, Length, cgs_to_geom);
-
     let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
 
+    // Insert ODE
     let mut tov_solver = ExplicitODE::new(tov_polytrope);
     tov_solver
         .set_step_size(1e-5*r_step)
@@ -38,20 +38,54 @@ fn main() {
         .set_method(ExMethod::RK4)
         .set_initial_condition(init_state);
 
-    solar_rad.print();
-    r_step.print();
-
+    // Integration
     let results = tov_solver.integrate();
 
-    let l = results.row;
-    let final_m = results.row(l-1)[1];
-    final_m.print();
+    // Prepare vectors to input Python
+    let result_r = results.col(0);
+    let result_m = results.col(1);
+    let result_rho = results.col(2);
+    let result_p = result_rho.fmap(|x| K * x.powf(Gamma));
 
-    let mut simple_writer = SimpleWriter::new();
-    simple_writer
-        .set_path("data/tov_BSk19_RK4.pickle")
-        .insert_matrix(results)
-        .write_pickle();
+    // Python plot code
+    python! {
+        import pylab as plt
+        import numpy as np
+
+        # Use latex
+        plt.rc("text", usetex=True)
+        plt.rc("font", family="serif")
+
+        # Plot
+        plt.figure(figsize=(10,6), dpi=300)
+        plt.title(r"$R$ vs $\rho$", fontsize=16)
+        plt.xlabel(r"$r$", fontsize=14)
+        plt.ylabel(r"$\rho$", fontsize=14)
+
+        plt.plot('result_r, 'result_rho)
+        plt.grid()
+        plt.savefig("data/r_vs_rho.png")
+
+        # Plot2
+        plt.figure(figsize=(10,6), dpi=300)
+        plt.title(r"$R$ vs $m$", fontsize=16)
+        plt.xlabel(r"$r$", fontsize=14)
+        plt.ylabel(r"$m$", fontsize=14)
+
+        plt.plot('result_r, 'result_m)
+        plt.grid()
+        plt.savefig("data/r_vs_m.png")
+
+        # Plot3
+        plt.figure(figsize=(10,6), dpi=300)
+        plt.title(r"$R$ vs $P$", fontsize=16)
+        plt.xlabel(r"$r$", fontsize=14)
+        plt.ylabel(r"$p$", fontsize=14)
+
+        plt.plot('result_r, 'result_p)
+        plt.grid()
+        plt.savefig("data/r_vs_p.png")
+    }
 }
 
 pub fn tov_polytrope(st: &mut State<f64>) {

@@ -53,3 +53,15 @@ plt.plot(r, p)
 plt.legend(fontsize=12)
 plt.grid()
 plt.savefig("r_vs_p.png")
+
+# Plot
+plt.figure(figsize=(10,6), dpi=300)
+plt.title(r"$\rho$ vs $P$", fontsize=16)
+plt.xlabel(r'$\log\rho$', fontsize=14)
+plt.ylabel(r'$\log p$', fontsize=14)
+
+plt.plot(np.log(rho), np.log(p))
+
+plt.legend(fontsize=12)
+plt.grid()
+plt.savefig("rho_vs_p.png")
