@@ -1,14 +1,12 @@
 #![feature(proc_macro_hygiene)]
-extern crate inline_python;
 extern crate peroxide;
+extern crate inline_python;
 extern crate natural_unit;
 use peroxide::*;
 use natural_unit::*;
-use inline_python::python;
-
-#[allow(non_snake_case)]
 use std::f64::consts::PI;
 use NSCool::tov::eos::*;
+use inline_python::python;
 
 pub const K: f64 = 30000f64;
 pub const Gamma: f64 = 2f64;
@@ -61,7 +59,6 @@ fn main() {
         plt.title(r"$R$ vs $\rho$", fontsize=16)
         plt.xlabel(r"$r$", fontsize=14)
         plt.ylabel(r"$\rho$", fontsize=14)
-
         plt.plot('result_r, 'result_rho)
         plt.grid()
         plt.savefig("data/r_vs_rho.png")
@@ -71,7 +68,6 @@ fn main() {
         plt.title(r"$R$ vs $m$", fontsize=16)
         plt.xlabel(r"$r$", fontsize=14)
         plt.ylabel(r"$m$", fontsize=14)
-
         plt.plot('result_r, 'result_m)
         plt.grid()
         plt.savefig("data/r_vs_m.png")
@@ -81,7 +77,6 @@ fn main() {
         plt.title(r"$R$ vs $P$", fontsize=16)
         plt.xlabel(r"$r$", fontsize=14)
         plt.ylabel(r"$p$", fontsize=14)
-
         plt.plot('result_r, 'result_p)
         plt.grid()
         plt.savefig("data/r_vs_p.png")
