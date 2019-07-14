@@ -8,7 +8,7 @@ use std::f64::consts::PI;
 use NSCool::tov::eos::*;
 use inline_python::python;
 
-pub const K: f64 = 30000f64;
+pub const K: f64 = 100f64;
 pub const Gamma: f64 = 2f64;
 
 fn main() {
@@ -32,12 +32,14 @@ fn main() {
     let mut tov_solver = ExplicitODE::new(tov_polytrope);
     tov_solver
         .set_step_size(1e-5*r_step)
-        .set_times(100_000)
+        .set_times(200_000)
         .set_method(ExMethod::RK4)
-        .set_initial_condition(init_state);
+        .set_initial_condition(init_state)
+        .set_stop_condition(stop_by_p);
 
     // Integration
     let results = tov_solver.integrate();
+    println!("Integrate finish");
 
     // Prepare vectors to input Python
     let result_r = results.col(0);
@@ -100,4 +102,9 @@ pub fn tov_polytrope(st: &mut State<f64>) {
     } else {
         dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * Gamma);
     }
+}
+
+pub fn stop_by_p(st: &ExplicitODE) -> bool {
+    let rho = st.get_state().value[1];
+    (K*rho.powf(Gamma) - 0f64).abs() < 1e-6
 }
