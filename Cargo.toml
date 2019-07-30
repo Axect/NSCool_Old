@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 peroxide = "0.12"
 natural_unit = "0.1"
+inline-python = "0.3"

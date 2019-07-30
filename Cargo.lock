@@ -4,8 +4,9 @@
 name = "NSCool"
 version = "0.1.0"
 dependencies = [
+ "inline-python 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "natural_unit 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "peroxide 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "peroxide 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -95,6 +96,26 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "proc-macro2 0.4.30 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 0.15.42 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "inline-python"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "inline-python-macros 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pyo3 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "inline-python-macros"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "proc-macro2 0.4.30 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pyo3 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.15.42 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -198,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "peroxide"
-version = "0.12.0"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "csv 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -429,6 +450,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum ctor 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "3b4c17619643c1252b5f690084b82639dd7fac141c57c8e77a00e0148132092c"
 "checksum getrandom 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "cd8e190892c840661957ba9f32dacfb3eb405e657f9f9f60485605f0bb37d6f8"
 "checksum ghost 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5297b71943dc9fea26a3241b178c140ee215798b7f79f7773fd61683e25bca74"
+"checksum inline-python 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "085c81316bab51be7f7e3ed83a8aaf1fa1680e8e7c07fefc0304aca12e7adcc9"
+"checksum inline-python-macros 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a57469b3bf5cf00327c5ae20106a68bb4e8e959deb5b0442893c4c49ae46d0bd"
 "checksum inventory 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "21df85981fe094480bc2267723d3dc0fd1ae0d1f136affc659b7398be615d922"
 "checksum inventory-impl 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "8a877ae8bce77402d5e9ed870730939e097aad827b2a932b361958fa9d6e75aa"
 "checksum iter-read 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fd21fe25e1055a2f43330a99add09151857f73fcf3cee59d0b1f802c096fe2be"
@@ -442,7 +465,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum num-bigint 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "57450397855d951f1a41305e54851b1a7b8f5d2e349543a02a2effe25459f718"
 "checksum num-integer 0.1.41 (registry+https://github.com/rust-lang/crates.io-index)" = "b85e541ef8255f6cf42bbfe4ef361305c6c135d10919ecc26126c4e5ae94bc09"
 "checksum num-traits 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "6ba9a427cfca2be13aa6f6403b0b7e7368fe982bfa16fccc450ce74c46cd9b32"
-"checksum peroxide 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6471f50f7c63acead9840a2e8756e467fe192ec1ec46fe2574e497c7976e2fb1"
+"checksum peroxide 0.12.2 (registry+https://github.com/rust-lang/crates.io-index)" = "de8419f15db144f8c3852fa4a04fd5966b861c0c66bb776d666bd3e0e877cfdb"
 "checksum ppv-lite86 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "e3cbf9f658cdb5000fcf6f362b8ea2ba154b9f146a61c7a20d647034c6b6561b"
 "checksum proc-macro-hack 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "463bf29e7f11344e58c9e01f171470ab15c925c6822ad75028cc1c0e1d1eb63b"
 "checksum proc-macro-hack-impl 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "38c47dcb1594802de8c02f3b899e2018c78291168a22c281be21ea0fb4796842"
