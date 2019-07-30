@@ -27,12 +27,13 @@ fn main() {
     p.len().print();
 
     let kg = vec![100f64, 2f64];
+    let kgs = vec![100f64, 2f64, 2f64, 2f64];
 
     let data = hstack!(rho.clone(), p.clone());
     let data_crust = hstack!(rho_crust.clone(), p_crust.clone());
 
-    let mut opt = Optimizer::new(data, polytrope);
-    let param = opt.set_init_param(kg.clone())
+    let mut opt = Optimizer::new(data, piecewise_polytrope);
+    let param = opt.set_init_param(kgs.clone())
         .set_method(LevenbergMarquardt)
         .set_max_iter(100)
         .optimize();
@@ -45,7 +46,7 @@ fn main() {
         .optimize();
     param_crust.print();
 
-    let fit = polytrope(&rho, NumberVector::from_f64_vec(param)).to_f64_vec();
+    let fit = piecewise_polytrope(&rho, NumberVector::from_f64_vec(param)).to_f64_vec();
     let fit_crust = polytrope(&rho_crust, NumberVector::from_f64_vec(param_crust)).to_f64_vec();
 
     let mut plot = Plot2D::new();
@@ -78,5 +79,27 @@ fn polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
     let g = kr[1];
     rho.clone().into_iter()
         .map(|x| k.log10() + g * x)
+        .collect()
+}
+
+fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
+    let k1 = kr[0];
+    let g1 = kr[1];
+    let g2 = kr[2];
+    let g3 = kr[3];
+    let rho1 = -3.6f64;
+    let rho2 = -2.6f64;
+    let k2 = (k1 * Number::F(10f64.powf(rho1)).powf(g1)) / Number::F(10f64.powf(rho1)).powf(g2);
+    let k3 = (k2 * Number::F(10f64.powf(rho2)).powf(g2)) / Number::F(10f64.powf(rho2)).powf(g3);
+    rho.clone().into_iter()
+        .map(|x| {
+            if x <= rho1 {
+                k1.log10() + g1 * x
+            } else if x <= rho2 {
+                k2.log10() + g2 * x
+            } else {
+                k3.log10() + g3 * x
+            }
+        })
         .collect()
 }
