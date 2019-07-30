@@ -15,15 +15,13 @@ fn main() {
         c.powi(3) / (G*M),
     );
 
-    let apr_data = Matrix::read("data/APR_EOS_Acc_Fe.dat", false, ' ').expect("Can't read APR");
-    let sly_data = Matrix::read("data/sly4.dat", false, ' ').expect("Can't read SLy4");
-    let fps_data = Matrix::read("data/fps.dat", false, ' ').expect("Can't read FPS");
-    let apr_crust = Matrix::read("data/APR_EOS_Acc_Fe_crust.dat", false, ' ').expect("Can't read crust");
+    let fps_data = Matrix::read("data/fps.dat", false, ' ').expect("Can't read APR");
+    let fps_crust = Matrix::read("data/fps_crust.dat", false, ' ').expect("Can't read crust");
 
-    let rho = apr_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-    let p = apr_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
-    let rho_crust = apr_crust.col(0).fmap(|x| convert(x, Density, cgs_to_geom).log10());
-    let p_crust = apr_crust.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom).log10());
+    let rho = fps_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let p = fps_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+    let rho_crust = fps_crust.col(0).fmap(|x| convert(x, Density, cgs_to_geom).log10());
+    let p_crust = fps_crust.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom).log10());
 
     rho.len().print();
     p.len().print();
@@ -54,11 +52,11 @@ fn main() {
     plot.set_domain(rho)
         .insert_image(p)
         .insert_image(fit)
-        .set_title("$\\log \\rho$ vs $\\log P$")
+        .set_title("$\\log \\rho$ vs $\\log P$ (Inner)")
         .set_xlabel("$\\log\\rho$")
         .set_ylabel("$\\log P$")
-        .set_path("figure/APR/apr_fit.png")
-        .set_legends(vec!["$APR$", "fit"])
+        .set_path("figure/FPS/fps_fit.png")
+        .set_legends(vec!["FPS", "fit"])
         .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw a plot");
 
@@ -66,11 +64,11 @@ fn main() {
     plot.set_domain(rho_crust)
         .insert_image(p_crust)
         .insert_image(fit_crust)
-        .set_title("$\\log \\rho$ vs $\\log P$")
+        .set_title("$\\log \\rho$ vs $\\log P$ (Crust)")
         .set_xlabel("$\\log\\rho$")
         .set_ylabel("$\\log P$")
-        .set_path("figure/APR/apr_crust_fit.png")
-        .set_legends(vec!["$APR$", "fit"])
+        .set_path("figure/FPS/fps_crust_fit.png")
+        .set_legends(vec!["FPS", "fit"])
         .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw a plot");
 }
