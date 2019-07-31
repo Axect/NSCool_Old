@@ -56,7 +56,7 @@ fn main() {
 
     let results = (0..SIZE).into_par_iter().map(|idx| {
         // Set Initial Conditions
-        let rho_c = convert(6.749E+15f64 + (idx as f64) * (1e11 - 6e15) / 1000f64, Density, cgs_to_geom);
+        let rho_c = convert(6.749E+15f64 + (idx as f64) * (1e10 - 6e15) / 1000f64, Density, cgs_to_geom);
         let r_step = convert(10_000_00f64, Length, cgs_to_geom);
         let m_c = 0f64;
         let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
@@ -64,7 +64,7 @@ fn main() {
         // Insert ODE
         let mut tov_solver = ExplicitODE::new(tov_piecewise_polytrope);
         tov_solver
-            .set_step_size(1e-6*r_step)
+            .set_step_size(1e-5*r_step)
             .set_times(2_000_000)
             .set_method(ExMethod::RK4)
             .set_initial_condition(init_state)
