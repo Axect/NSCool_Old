@@ -162,5 +162,5 @@ pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
 
 pub fn stop_by_p(st: &ExplicitODE) -> bool {
     let rho = st.get_state().value[1];
-    K0 * rho.powf(GAMMA0) < 1e-12
+    K0 * rho.powf(GAMMA0) < 1e-15
 }
