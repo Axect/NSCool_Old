@@ -56,7 +56,7 @@ fn main() {
 
     let results = (0..SIZE).into_par_iter().map(|idx| {
         // Set Initial Conditions
-        let rho_c = convert(6.749E+15f64 + (idx as f64) * (1e10 - 1e17) / 1000f64, Density, cgs_to_geom);
+        let rho_c = convert(6.749E+15f64 + (idx as f64) * (1e11 - 6e15) / 1000f64, Density, cgs_to_geom);
         let r_step = convert(10_000_00f64, Length, cgs_to_geom);
         let m_c = 0f64;
         let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
@@ -162,5 +162,5 @@ pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
 
 pub fn stop_by_p(st: &ExplicitODE) -> bool {
     let rho = st.get_state().value[1];
-    K0 * rho.powf(GAMMA0) < 1e-11
+    K0 * rho.powf(GAMMA0) < 1e-10
 }
