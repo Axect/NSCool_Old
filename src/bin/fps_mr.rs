@@ -17,7 +17,7 @@ pub const RHO1: f64 = -5.55f64;
 pub const RHO2: f64 = -3.6f64;
 pub const RHO3: f64 = -2.4f64;
 
-pub const SIZE: usize = 10000usize;
+pub const SIZE: usize = 1000usize;
 
 #[allow(non_snake_case)]
 fn main() {
@@ -58,7 +58,7 @@ fn main() {
 
     let results = (1..SIZE+1).into_par_iter().map(|idx| {
         // Set Initial Conditions
-        let rho_c = convert(0.1057380000E+18 * (10f64 * idx as f64), Density, cgs_to_geom);
+        let rho_c = convert(0.1057380000E+18 * (1000f64 * idx as f64), Density, cgs_to_geom);
         let r_step = convert(10_000_00f64, Length, cgs_to_geom);
         let m_c = 0f64;
         let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
