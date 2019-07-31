@@ -7,10 +7,14 @@ use natural_unit::*;
 use std::f64::consts::PI;
 use inline_python::python;
 
-pub const K: f64 = 19.2338f64;
-pub const GAMMA: f64 = 1.7265f64;
-pub const K2: f64 = 3.8049f64;
-pub const GAMMA2: f64 = 1.4736f64;
+pub const K0: f64 = 0.3249;
+pub const GAMMA0: f64 = 1.3346;
+pub const GAMMA1: f64 = 0.4091;
+pub const GAMMA2: f64 = 1.5090;
+pub const GAMMA3: f64 = 2.3242;
+pub const RHO1: f64 = -6.4;
+pub const RHO2: f64 = -5.6;
+pub const RHO3: f64 = -3.6;
 
 #[allow(non_snake_case)]
 fn main() {
@@ -25,44 +29,53 @@ fn main() {
     );
 
     // Set Initial Conditions
-    let rho_c = convert(3.48E+15f64, Density, cgs_to_geom);
+    let rho_c = convert(6.749E+15f64, Density, cgs_to_geom);
     let r_step = convert(10_000_00f64, Length, cgs_to_geom);
     let m_c = 0f64;
     let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
 
     // Insert ODE
-    let mut tov_solver = ExplicitODE::new(tov_polytrope);
+    let mut tov_solver = ExplicitODE::new(tov_piecewise_polytrope);
     tov_solver
         .set_step_size(1e-6*r_step)
         .set_times(2_000_000)
         .set_method(ExMethod::RK4)
         .set_initial_condition(init_state)
-        .set_stop_condition(stop_by_crust);
+        .set_stop_condition(stop_by_p);
 
     let results1 = tov_solver.integrate();
-
-    // Integration
-    tov_solver
-        .set_stop_condition(stop_by_p);
-    let results2 = tov_solver.integrate();
     println!("Integrate finish!");
 
     let value = results1.row(results1.row-1);
-    println!("To crust: {} km", invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64);
-    println!("To crust: {} solar mass", value[1]);
-
-    let value2 = results2.row(results2.row-1);
-    println!("To surface: {} km", invert(value2[0], Length, cgs_to_geom) / 100f64 / 1000f64);
-    println!("To surface: {} solar mass", value2[1]);
+    println!("Radius: {} km", invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64);
+    println!("Mass: {} solar mass", value[1]);
 
     // Prepare vectors to input Python
-    let result_r = concat(results1.col(0), results2.col(0));
-    let result_m = concat(results1.col(1), results2.col(1));
-    let result_rho = concat(results1.col(2), results2.col(2));
-    let result_p = concat(
-        results1.col(2).fmap(|x| K * x.powf(GAMMA)),
-        results2.col(2).fmap(|x| K2 * x.powf(GAMMA2))
-    );
+    let result_r = results1.col(0);
+    let result_m = results1.col(1);
+    let result_rho = results1.col(2);
+    let result_p = results1.col(2).fmap(|rho| {
+        let k1 = K0 * 10f64.powf(RHO1).powf(GAMMA0) / 10f64.powf(RHO1).powf(GAMMA1);
+        let k2 = k1 * 10f64.powf(RHO2).powf(GAMMA1) / 10f64.powf(RHO2).powf(GAMMA2);
+        let k3 = k2 * 10f64.powf(RHO3).powf(GAMMA2) / 10f64.powf(RHO3).powf(GAMMA3);
+        let k: f64;
+        let g: f64;
+
+        if rho > 10f64.powf(RHO3) {
+            k = k3;
+            g = GAMMA3;
+        } else if rho > 10f64.powf(RHO2) {
+            k = k2;
+            g = GAMMA2;
+        } else if rho > 10f64.powf(RHO1) {
+            k = k1;
+            g = GAMMA1;
+        } else {
+            k = K0;
+            g = GAMMA0;
+        }
+        k * rho.powf(g)
+    });
 
     // Python plot code
     python! {
@@ -102,45 +115,48 @@ fn main() {
     }
 }
 
-pub fn tov_polytrope(st: &mut State<f64>) {
+pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
     let r = st.param;
     let xs = &st.value; // m, rho, p
     let mut dx = &mut st.deriv;
 
     let m = xs[0];
     let rho = xs[1];
-    let p = K * rho.powf(GAMMA);
 
-    let eps = rho + 1f64 / (GAMMA - 1f64) * K * rho.powf(GAMMA);
+
+    let k1 = K0 * 10f64.powf(RHO1).powf(GAMMA0) / 10f64.powf(RHO1).powf(GAMMA1);
+    let k2 = k1 * 10f64.powf(RHO2).powf(GAMMA1) / 10f64.powf(RHO2).powf(GAMMA2);
+    let k3 = k2 * 10f64.powf(RHO3).powf(GAMMA2) / 10f64.powf(RHO3).powf(GAMMA3);
+    let k: f64;
+    let g: f64;
+
+    if rho > 10f64.powf(RHO3) {
+        k = k3;
+        g = GAMMA3;
+    } else if rho > 10f64.powf(RHO2) {
+        k = k2;
+        g = GAMMA2;
+    } else if rho > 10f64.powf(RHO1) {
+        k = k1;
+        g = GAMMA1;
+    } else {
+        k = K0;
+        g = GAMMA0;
+    }
+
+    let p = k * rho.powf(g);
+
+    let eps = rho + 1f64 / (g - 1f64) * k * rho.powf(g);
     dx[0] = 4f64*PI*r.powi(2)*eps;
     if r < 1e-4 {
         let m_r3 = 4f64 * PI / 3f64 * eps;
-        dx[1] = -(eps + p) * (m_r3 * r + 4f64*PI*r*p) / (1f64 - 2f64*m_r3*r.powi(2)) * rho / (p * GAMMA);
+        dx[1] = -(eps + p) * (m_r3 * r + 4f64*PI*r*p) / (1f64 - 2f64*m_r3*r.powi(2)) * rho / (p * g);
     } else {
-        dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * GAMMA);
+        dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * g);
     }
-}
-
-pub fn tov_polytrope_crust(st: &mut State<f64>) {
-    let r = st.param;
-    let xs = &st.value; // m, rho, p
-    let mut dx = &mut st.deriv;
-
-    let m = xs[0];
-    let rho = xs[1];
-    let p = K2 * rho.powf(GAMMA2);
-
-    let eps = rho + 1f64 / (GAMMA2 - 1f64) * K2 * rho.powf(GAMMA2);
-    dx[0] = 4f64*PI*r.powi(2)*eps;
-    dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * GAMMA2);
 }
 
 pub fn stop_by_p(st: &ExplicitODE) -> bool {
     let rho = st.get_state().value[1];
-    K2*rho.powf(GAMMA2) < 1e-10
-}
-
-pub fn stop_by_crust(st: &ExplicitODE) -> bool {
-    let rho = st.get_state().value[1];
-    rho < 0.9f64 * 1e-6
+    K0 * rho.powf(GAMMA0) < 1e-11
 }
