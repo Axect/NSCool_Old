@@ -17,7 +17,7 @@ pub const RHO1: f64 = -5.55f64;
 pub const RHO2: f64 = -3.6f64;
 pub const RHO3: f64 = -2.4f64;
 
-pub const SIZE: usize = 2000usize;
+pub const SIZE: usize = 10000usize;
 
 #[allow(non_snake_case)]
 fn main() {
