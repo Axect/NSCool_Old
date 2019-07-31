@@ -58,7 +58,7 @@ fn main() {
 
     let results = (0..SIZE).into_par_iter().map(|idx| {
         // Set Initial Conditions
-        let rho_c = convert(0.1057380000E+18 + (idx as f64) * (1e13 - 1e17) / 1000f64, Density, cgs_to_geom);
+        let rho_c = convert(0.1057380000E+18 + (idx as f64) * (1e10 - 1e17) / 1000f64, Density, cgs_to_geom);
         let r_step = convert(10_000_00f64, Length, cgs_to_geom);
         let m_c = 0f64;
         let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
