@@ -1,7 +1,10 @@
 extern crate peroxide;
 extern crate natural_unit;
+extern crate rayon;
 use peroxide::*;
 use natural_unit::*;
+use rayon::prelude::*;
+use std::f64::consts::PI;
 
 #[allow(non_snake_case)]
 fn main() {
@@ -15,17 +18,17 @@ fn main() {
         c.powi(3) / (G*M),
     );
 
-    let sly4_data = Matrix::read("data/sly4.dat", false, ' ').expect("Can't read APR");
+    let fps_data = Matrix::read("data/fps.dat", false, ' ').expect("Can't read APR");
 
-    let rho = sly4_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-    let p = sly4_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+    let log_rho = fps_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let log_p = fps_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
 
-    rho.len().print();
-    p.len().print();
+    log_rho.len().print();
+    log_p.len().print();
 
-    let kgs = vec![100f64, 2f64, 2f64, 2f64, 2f64];
+    let kgs = vec![100f64, 2f64, 2f64, 2f64, 2f64, 2f64];
 
-    let data = hstack!(rho.clone(), p.clone());
+    let data = hstack!(log_rho.clone(), log_p.clone());
 
     let mut opt = Optimizer::new(data, piecewise_polytrope);
     let param = opt.set_init_param(kgs.clone())
@@ -33,35 +36,25 @@ fn main() {
         .set_max_iter(100)
         .optimize();
     param.print();
-
-    let fit = piecewise_polytrope(&rho, NumberVector::from_f64_vec(param)).to_f64_vec();
-
-    let mut plot = Plot2D::new();
-    plot.set_domain(rho)
-        .insert_image(p)
-        .insert_image(fit)
-        .set_title("$\\log \\rho$ vs $\\log P$ (Total)")
-        .set_xlabel("$\\log\\rho$")
-        .set_ylabel("$\\log P$")
-        .set_path("figure/SLy/sly4_fit.png")
-        .set_legend(vec!["SLy4", "fit"])
-        .set_marker(vec![Point, Line])
-        .savefig().expect("Can't draw a plot");
 }
 
-fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
+#[allow(non_snake_case)]
+fn piecewise_polytrope(log_rho: &Vec<f64>, kr: Vec<Number>, RHO_interval: &Vec<f64>) -> Vec<Number> {
     let k0 = kr[0];
     let g0 = kr[1];
     let g1 = kr[2];
     let g2 = kr[3];
     let g3 = kr[4];
-    let rho0 = -6.4f64;
-    let rho1 = -5.6f64;
-    let rho2 = -3.6f64;
+    let g4 = kr[5];
+    let rho0 = RHO_interval[0];
+    let rho1 = RHO_interval[1];
+    let rho2 = RHO_interval[2];
+    let rho3 = RHO_interval[3];
     let k1 = (k0 * Number::F(10f64.powf(rho0)).powf(g0)) / Number::F(10f64.powf(rho0)).powf(g1);
     let k2 = (k1 * Number::F(10f64.powf(rho1)).powf(g1)) / Number::F(10f64.powf(rho1)).powf(g2);
     let k3 = (k2 * Number::F(10f64.powf(rho2)).powf(g2)) / Number::F(10f64.powf(rho2)).powf(g3);
-    rho.clone().into_iter()
+    let k4 = (k3 * Number::F(10f64.powf(rho3)).powf(g3)) / Number::F(10f64.powf(rho3)).powf(g4);
+    log_rho.clone().into_iter()
         .map(|x| {
             if x <= rho0 {
                 k0.log10() + g0 * x
@@ -69,8 +62,10 @@ fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
                 k1.log10() + g1 * x
             } else if x <= rho2 {
                 k2.log10() + g2 * x
-            } else {
+            } else if x <= rho3 {
                 k3.log10() + g3 * x
+            } else {
+                k4.log10() + g4 * x
             }
         })
         .collect()

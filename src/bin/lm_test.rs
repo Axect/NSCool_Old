@@ -23,7 +23,7 @@ fn main() {
     let mut plt = Plot2D::new();
     plt.set_domain(x)
         .insert_image(y)
-        .set_legends(vec!["$y=x^2$"])
+        .set_legend(vec!["$y=x^2$"])
         .set_title("Test")
         .set_path("figure/lm_test.png")
         .savefig().expect("Can't draw a plot");

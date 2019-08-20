@@ -56,7 +56,7 @@ fn main() {
         .set_xlabel("$\\log\\rho$")
         .set_ylabel("$\\log P$")
         .set_path("figure/APR/apr_fit.png")
-        .set_legends(vec!["APR", "fit"])
+        .set_legend(vec!["APR", "fit"])
         .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw a plot");
 
@@ -68,7 +68,7 @@ fn main() {
         .set_xlabel("$\\log\\rho$")
         .set_ylabel("$\\log P$")
         .set_path("figure/APR/apr_crust_fit.png")
-        .set_legends(vec!["APR", "fit"])
+        .set_legend(vec!["APR", "fit"])
         .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw a plot");
 }

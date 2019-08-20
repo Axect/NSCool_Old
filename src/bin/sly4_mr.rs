@@ -85,7 +85,7 @@ fn main() {
     plt.set_path("figure/SLy/MR.png")
         .set_domain(results_r)
         .insert_image(results_m)
-        .set_legends(vec!["$M-R$"])
+        .set_legend(vec!["$M-R$"])
         .set_title("$M-R$ relation of SLy4")
         .set_xlabel("$R$")
         .set_ylabel("$M$")

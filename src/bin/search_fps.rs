@@ -44,7 +44,7 @@ fn main() {
         .set_xlabel("$\\log\\rho$")
         .set_ylabel("$\\log P$")
         .set_path("figure/FPS/fps_fit.png")
-        .set_legends(vec!["FPS", "fit"])
+        .set_legend(vec!["FPS", "fit"])
         .set_marker(vec![Point, Line])
         .savefig().expect("Can't draw a plot");
 }

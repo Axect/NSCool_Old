@@ -87,7 +87,7 @@ fn main() {
     plt.set_path("figure/FPS/MR.png")
         .set_domain(results_r)
         .insert_image(results_m)
-        .set_legends(vec!["$M-R$"])
+        .set_legend(vec!["$M-R$"])
         .set_title("$M-R$ relation of FPS")
         .set_xlabel("$R$")
         .set_ylabel("$M$")
@@ -129,7 +129,7 @@ fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
 pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
     let r = st.param;
     let xs = &st.value; // m, rho, p
-    let mut dx = &mut st.deriv;
+    let dx = &mut st.deriv;
 
     let m = xs[0];
     let rho = xs[1];
