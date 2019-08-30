@@ -5,7 +5,10 @@ authors = ["axect <edeftg@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-peroxide = "0.12"
 natural_unit = "0.1"
 inline-python = "0.3"
 rayon = "1"
+
+[dependencies.peroxide]
+version = "0.15"
+features = ["openblas", "plot"]

@@ -1,11 +1,11 @@
 #![feature(proc_macro_hygiene)]
-extern crate peroxide;
 extern crate inline_python;
 extern crate natural_unit;
-use peroxide::*;
-use natural_unit::*;
-use std::f64::consts::PI;
+extern crate peroxide;
 use inline_python::python;
+use natural_unit::*;
+use peroxide::*;
+use std::f64::consts::PI;
 
 pub const K: f64 = 793.1060f64;
 pub const GAMMA: f64 = 2.3436f64;
@@ -18,11 +18,7 @@ fn main() {
     let c = CONSTANT_CGS.c;
     let G = CONSTANT_CGS.G;
     let M = CONSTANT_CGS.m_solar;
-    let cgs_to_geom = ConversionFactor::new(
-        1f64 / M,
-        c.powi(2) / (G*M),
-        c.powi(3) / (G*M),
-    );
+    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
 
     // Set Initial Conditions
     let rho_c = convert(3.48E+15f64, Density, cgs_to_geom);
@@ -33,7 +29,7 @@ fn main() {
     // Insert ODE
     let mut tov_solver = ExplicitODE::new(tov_polytrope);
     tov_solver
-        .set_step_size(1e-6*r_step)
+        .set_step_size(1e-6 * r_step)
         .set_times(2_000_000)
         .set_method(ExMethod::RK4)
         .set_initial_condition(init_state)
@@ -42,17 +38,22 @@ fn main() {
     let results1 = tov_solver.integrate();
 
     // Integration
-    tov_solver
-        .set_stop_condition(stop_by_p);
+    tov_solver.set_stop_condition(stop_by_p);
     let results2 = tov_solver.integrate();
     println!("Integrate finish!");
 
-    let value = results1.row(results1.row-1);
-    println!("To crust: {} km", invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64);
+    let value = results1.row(results1.row - 1);
+    println!(
+        "To crust: {} km",
+        invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64
+    );
     println!("To crust: {} solar mass", value[1]);
 
-    let value2 = results2.row(results2.row-1);
-    println!("To surface: {} km", invert(value2[0], Length, cgs_to_geom) / 100f64 / 1000f64);
+    let value2 = results2.row(results2.row - 1);
+    println!(
+        "To surface: {} km",
+        invert(value2[0], Length, cgs_to_geom) / 100f64 / 1000f64
+    );
     println!("To surface: {} solar mass", value2[1]);
 
     // Prepare vectors to input Python
@@ -61,7 +62,7 @@ fn main() {
     let result_rho = concat(results1.col(2), results2.col(2));
     let result_p = concat(
         results1.col(2).fmap(|x| K * x.powf(GAMMA)),
-        results2.col(2).fmap(|x| K2 * x.powf(GAMMA2))
+        results2.col(2).fmap(|x| K2 * x.powf(GAMMA2)),
     );
 
     // Python plot code
@@ -112,12 +113,15 @@ pub fn tov_polytrope(st: &mut State<f64>) {
     let p = K * rho.powf(GAMMA);
 
     let eps = rho + 1f64 / (GAMMA - 1f64) * K * rho.powf(GAMMA);
-    dx[0] = 4f64*PI*r.powi(2)*eps;
+    dx[0] = 4f64 * PI * r.powi(2) * eps;
     if r < 1e-4 {
         let m_r3 = 4f64 * PI / 3f64 * eps;
-        dx[1] = -(eps + p) * (m_r3 * r + 4f64*PI*r*p) / (1f64 - 2f64*m_r3*r.powi(2)) * rho / (p * GAMMA);
+        dx[1] = -(eps + p) * (m_r3 * r + 4f64 * PI * r * p) / (1f64 - 2f64 * m_r3 * r.powi(2))
+            * rho
+            / (p * GAMMA);
     } else {
-        dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * GAMMA);
+        dx[1] =
+            -(eps + p) * (m + 4f64 * PI * r.powi(3) * p) / (r * (r - 2f64 * m)) * rho / (p * GAMMA);
     }
 }
 
@@ -131,13 +135,14 @@ pub fn tov_polytrope_crust(st: &mut State<f64>) {
     let p = K2 * rho.powf(GAMMA2);
 
     let eps = rho + 1f64 / (GAMMA2 - 1f64) * K2 * rho.powf(GAMMA2);
-    dx[0] = 4f64*PI*r.powi(2)*eps;
-    dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * GAMMA2);
+    dx[0] = 4f64 * PI * r.powi(2) * eps;
+    dx[1] =
+        -(eps + p) * (m + 4f64 * PI * r.powi(3) * p) / (r * (r - 2f64 * m)) * rho / (p * GAMMA2);
 }
 
 pub fn stop_by_p(st: &ExplicitODE) -> bool {
     let rho = st.get_state().value[1];
-    K2*rho.powf(GAMMA2) < 1e-9
+    K2 * rho.powf(GAMMA2) < 1e-9
 }
 
 pub fn stop_by_crust(st: &ExplicitODE) -> bool {

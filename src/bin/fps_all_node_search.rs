@@ -1,8 +1,8 @@
-extern crate peroxide;
 extern crate natural_unit;
+extern crate peroxide;
 extern crate rayon;
-use peroxide::*;
 use natural_unit::*;
+use peroxide::*;
 use rayon::prelude::*;
 use std::f64::consts::PI;
 
@@ -12,16 +12,16 @@ fn main() {
     let c = CONSTANT_CGS.c;
     let G = CONSTANT_CGS.G;
     let M = CONSTANT_CGS.m_solar;
-    let cgs_to_geom = ConversionFactor::new(
-        1f64 / M,
-        c.powi(2) / (G*M),
-        c.powi(3) / (G*M),
-    );
+    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
 
     let fps_data = Matrix::read("data/fps.dat", false, ' ').expect("Can't read APR");
 
-    let log_rho = fps_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-    let log_p = fps_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+    let log_rho = fps_data
+        .col(0)
+        .fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let log_p = fps_data
+        .col(1)
+        .fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
 
     log_rho.len().print();
     log_p.len().print();
@@ -30,16 +30,20 @@ fn main() {
 
     let data = hstack!(log_rho.clone(), log_p.clone());
 
-    let mut opt = Optimizer::new(data, piecewise_polytrope);
-    let param = opt.set_init_param(kgs.clone())
-        .set_method(LevenbergMarquardt)
-        .set_max_iter(100)
-        .optimize();
-    param.print();
+    // let mut opt = Optimizer::new(data, piecewise_polytrope);
+    // let param = opt.set_init_param(kgs.clone())
+    //     .set_method(LevenbergMarquardt)
+    //     .set_max_iter(100)
+    //     .optimize();
+    // param.print();
 }
 
 #[allow(non_snake_case)]
-fn piecewise_polytrope(log_rho: &Vec<f64>, kr: Vec<Number>, RHO_interval: &Vec<f64>) -> Vec<Number> {
+fn piecewise_polytrope(
+    log_rho: &Vec<f64>,
+    kr: Vec<Number>,
+    RHO_interval: &Vec<f64>,
+) -> Vec<Number> {
     let k0 = kr[0];
     let g0 = kr[1];
     let g1 = kr[2];
@@ -54,7 +58,9 @@ fn piecewise_polytrope(log_rho: &Vec<f64>, kr: Vec<Number>, RHO_interval: &Vec<f
     let k2 = (k1 * Number::F(10f64.powf(rho1)).powf(g1)) / Number::F(10f64.powf(rho1)).powf(g2);
     let k3 = (k2 * Number::F(10f64.powf(rho2)).powf(g2)) / Number::F(10f64.powf(rho2)).powf(g3);
     let k4 = (k3 * Number::F(10f64.powf(rho3)).powf(g3)) / Number::F(10f64.powf(rho3)).powf(g4);
-    log_rho.clone().into_iter()
+    log_rho
+        .clone()
+        .into_iter()
         .map(|x| {
             if x <= rho0 {
                 k0.log10() + g0 * x

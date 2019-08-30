@@ -18,7 +18,8 @@ fn main() {
     opt.set_init_param(n_init)
         .set_max_iter(30)
         .set_method(LevenbergMarquardt)
-        .optimize().print();
+        .optimize()
+        .print();
 
     let mut plt = Plot2D::new();
     plt.set_domain(x)
@@ -26,12 +27,14 @@ fn main() {
         .set_legend(vec!["$y=x^2$"])
         .set_title("Test")
         .set_path("figure/lm_test.png")
-        .savefig().expect("Can't draw a plot");
+        .savefig()
+        .expect("Can't draw a plot");
 }
 
 fn quad(x: &Vec<f64>, n: Vec<Number>) -> Vec<Number> {
     let exp = n[0];
-    x.clone().into_iter()
+    x.clone()
+        .into_iter()
         .map(|t| Number::from_f64(t).powf(exp))
         .collect()
 }

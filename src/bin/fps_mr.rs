@@ -1,8 +1,8 @@
-extern crate peroxide;
 extern crate natural_unit;
+extern crate peroxide;
 extern crate rayon;
-use peroxide::*;
 use natural_unit::*;
+use peroxide::*;
 use rayon::prelude::*;
 use std::f64::consts::PI;
 
@@ -25,16 +25,16 @@ fn main() {
     let c = CONSTANT_CGS.c;
     let G = CONSTANT_CGS.G;
     let M = CONSTANT_CGS.m_solar;
-    let cgs_to_geom = ConversionFactor::new(
-        1f64 / M,
-        c.powi(2) / (G*M),
-        c.powi(3) / (G*M),
-    );
+    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
 
     let fps_data = Matrix::read("data/fps.dat", false, ' ').expect("Can't read APR");
 
-    let rho = fps_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-    let p = fps_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+    let rho = fps_data
+        .col(0)
+        .fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let p = fps_data
+        .col(1)
+        .fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
 
     rho.len().print();
     p.len().print();
@@ -44,44 +44,55 @@ fn main() {
     let data = hstack!(rho.clone(), p.clone());
 
     let mut opt = Optimizer::new(data, piecewise_polytrope);
-    let param = opt.set_init_param(kgs.clone())
+    let param = opt
+        .set_init_param(kgs.clone())
         .set_method(LevenbergMarquardt)
         .set_max_iter(100)
         .optimize();
     param.print();
 
-//    let K0 = param[0];
-//    let GAMMA0 = param[1];
-//    let GAMMA2 = param[2];
-//    let GAMMA3 = param[3];
-//    let GAMMA4 = param[4];
+    //    let K0 = param[0];
+    //    let GAMMA0 = param[1];
+    //    let GAMMA2 = param[2];
+    //    let GAMMA3 = param[3];
+    //    let GAMMA4 = param[4];
 
-    let results = (0..SIZE).into_par_iter().map(|idx| {
-        // Set Initial Conditions
-        let rho_c = convert(3E+14 + (idx as f64) * (1e16 - 3E14) / 1000f64, Density, cgs_to_geom);
-        let r_step = convert(10_000_00f64, Length, cgs_to_geom);
-        let m_c = 0f64;
-        let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
+    let results = (0..SIZE)
+        .into_par_iter()
+        .map(|idx| {
+            // Set Initial Conditions
+            let rho_c = convert(
+                3E+14 + (idx as f64) * (1e16 - 3E14) / 1000f64,
+                Density,
+                cgs_to_geom,
+            );
+            let r_step = convert(10_000_00f64, Length, cgs_to_geom);
+            let m_c = 0f64;
+            let init_state = State::<f64>::new(0f64, vec![m_c, rho_c], vec![0f64; 2]);
 
-        // Insert ODE
-        let mut tov_solver = ExplicitODE::new(tov_piecewise_polytrope);
-        tov_solver
-            .set_step_size(1e-5*r_step)
-            .set_times(2_000_000)
-            .set_method(ExMethod::RK4)
-            .set_initial_condition(init_state)
-            .set_stop_condition(stop_by_p);
+            // Insert ODE
+            let mut tov_solver = ExplicitODE::new(tov_piecewise_polytrope);
+            tov_solver
+                .set_step_size(1e-5 * r_step)
+                .set_times(2_000_000)
+                .set_method(ExMethod::RK4)
+                .set_initial_condition(init_state)
+                .set_stop_condition(stop_by_p);
 
-        let results1 = tov_solver.integrate();
-        println!("Integrate finish!");
+            let results1 = tov_solver.integrate();
+            println!("Integrate finish!");
 
-        let value = results1.row(results1.row-1);
+            let value = results1.row(results1.row - 1);
 
-        (invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64, value[1])
-    }).collect::<Vec<(f64, f64)>>();
+            (
+                invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64,
+                value[1],
+            )
+        })
+        .collect::<Vec<(f64, f64)>>();
 
-    let results_r: Vec<f64> = results.clone().into_iter().map(|(x,_)| x).collect();
-    let results_m: Vec<f64> = results.clone().into_iter().map(|(_,x)| x).collect();
+    let results_r: Vec<f64> = results.clone().into_iter().map(|(x, _)| x).collect();
+    let results_m: Vec<f64> = results.clone().into_iter().map(|(_, x)| x).collect();
 
     let mut plt = Plot2D::new();
     plt.set_path("figure/FPS/MR.png")
@@ -91,7 +102,8 @@ fn main() {
         .set_title("$M-R$ relation of FPS")
         .set_xlabel("$R$")
         .set_ylabel("$M$")
-        .savefig().expect("Can't draw a figure");
+        .savefig()
+        .expect("Can't draw a figure");
 }
 
 fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
@@ -109,7 +121,8 @@ fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
     let k2 = (k1 * Number::F(10f64.powf(rho1)).powf(g1)) / Number::F(10f64.powf(rho1)).powf(g2);
     let k3 = (k2 * Number::F(10f64.powf(rho2)).powf(g2)) / Number::F(10f64.powf(rho2)).powf(g3);
     let k4 = (k3 * Number::F(10f64.powf(rho3)).powf(g3)) / Number::F(10f64.powf(rho3)).powf(g4);
-    rho.clone().into_iter()
+    rho.clone()
+        .into_iter()
         .map(|x| {
             if x <= rho0 {
                 k0.log10() + g0 * x
@@ -133,7 +146,6 @@ pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
 
     let m = xs[0];
     let rho = xs[1];
-
 
     let k1 = K0 * 10f64.powf(RHO0).powf(GAMMA0) / 10f64.powf(RHO0).powf(GAMMA1);
     let k2 = k1 * 10f64.powf(RHO1).powf(GAMMA1) / 10f64.powf(RHO1).powf(GAMMA2);
@@ -162,12 +174,14 @@ pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
     let p = k * rho.powf(g);
 
     let eps = rho + 1f64 / (g - 1f64) * k * rho.powf(g);
-    dx[0] = 4f64*PI*r.powi(2)*eps;
+    dx[0] = 4f64 * PI * r.powi(2) * eps;
     if r < 1e-5 {
         let m_r3 = 4f64 * PI / 3f64 * eps;
-        dx[1] = -(eps + p) * (m_r3 * r + 4f64*PI*r*p) / (1f64 - 2f64*m_r3*r.powi(2)) * rho / (p * g);
+        dx[1] = -(eps + p) * (m_r3 * r + 4f64 * PI * r * p) / (1f64 - 2f64 * m_r3 * r.powi(2))
+            * rho
+            / (p * g);
     } else {
-        dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * g);
+        dx[1] = -(eps + p) * (m + 4f64 * PI * r.powi(3) * p) / (r * (r - 2f64 * m)) * rho / (p * g);
     }
 }
 

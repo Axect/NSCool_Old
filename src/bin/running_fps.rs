@@ -1,11 +1,11 @@
 #![feature(proc_macro_hygiene)]
-extern crate peroxide;
 extern crate inline_python;
 extern crate natural_unit;
-use peroxide::*;
-use natural_unit::*;
-use std::f64::consts::PI;
+extern crate peroxide;
 use inline_python::python;
+use natural_unit::*;
+use peroxide::*;
+use std::f64::consts::PI;
 
 pub const K0: f64 = 0.3715;
 pub const GAMMA0: f64 = 1.3399;
@@ -24,11 +24,7 @@ fn main() {
     let c = CONSTANT_CGS.c;
     let G = CONSTANT_CGS.G;
     let M = CONSTANT_CGS.m_solar;
-    let cgs_to_geom = ConversionFactor::new(
-        1f64 / M,
-        c.powi(2) / (G*M),
-        c.powi(3) / (G*M),
-    );
+    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
 
     // Set Initial Conditions
     let rho_c = convert(0.1057380000E+18, Density, cgs_to_geom);
@@ -39,7 +35,7 @@ fn main() {
     // Insert ODE
     let mut tov_solver = ExplicitODE::new(tov_piecewise_polytrope);
     tov_solver
-        .set_step_size(1e-6*r_step)
+        .set_step_size(1e-6 * r_step)
         .set_times(2_000_000)
         .set_method(ExMethod::RK4)
         .set_initial_condition(init_state)
@@ -48,8 +44,11 @@ fn main() {
     let results1 = tov_solver.integrate();
     println!("Integrate finish!");
 
-    let value = results1.row(results1.row-1);
-    println!("Radius: {} km", invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64);
+    let value = results1.row(results1.row - 1);
+    println!(
+        "Radius: {} km",
+        invert(value[0], Length, cgs_to_geom) / 100f64 / 1000f64
+    );
     println!("Mass: {} solar mass", value[1]);
 
     // Prepare vectors to input Python
@@ -129,7 +128,6 @@ pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
     let m = xs[0];
     let rho = xs[1];
 
-
     let k1 = K0 * 10f64.powf(RHO0).powf(GAMMA0) / 10f64.powf(RHO0).powf(GAMMA1);
     let k2 = k1 * 10f64.powf(RHO1).powf(GAMMA1) / 10f64.powf(RHO1).powf(GAMMA2);
     let k3 = k2 * 10f64.powf(RHO2).powf(GAMMA2) / 10f64.powf(RHO2).powf(GAMMA3);
@@ -157,12 +155,14 @@ pub fn tov_piecewise_polytrope(st: &mut State<f64>) {
     let p = k * rho.powf(g);
 
     let eps = rho + 1f64 / (g - 1f64) * k * rho.powf(g);
-    dx[0] = 4f64*PI*r.powi(2)*eps;
+    dx[0] = 4f64 * PI * r.powi(2) * eps;
     if r < 1e-5 {
         let m_r3 = 4f64 * PI / 3f64 * eps;
-        dx[1] = -(eps + p) * (m_r3 * r + 4f64*PI*r*p) / (1f64 - 2f64*m_r3*r.powi(2)) * rho / (p * g);
+        dx[1] = -(eps + p) * (m_r3 * r + 4f64 * PI * r * p) / (1f64 - 2f64 * m_r3 * r.powi(2))
+            * rho
+            / (p * g);
     } else {
-        dx[1] = -(eps + p) * (m + 4f64*PI*r.powi(3)*p) / (r * (r - 2f64*m)) * rho / (p * g);
+        dx[1] = -(eps + p) * (m + 4f64 * PI * r.powi(3) * p) / (r * (r - 2f64 * m)) * rho / (p * g);
     }
 }
 

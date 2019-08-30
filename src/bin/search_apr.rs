@@ -1,7 +1,7 @@
-extern crate peroxide;
 extern crate natural_unit;
-use peroxide::*;
+extern crate peroxide;
 use natural_unit::*;
+use peroxide::*;
 
 #[allow(non_snake_case)]
 fn main() {
@@ -9,19 +9,24 @@ fn main() {
     let c = CONSTANT_CGS.c;
     let G = CONSTANT_CGS.G;
     let M = CONSTANT_CGS.m_solar;
-    let cgs_to_geom = ConversionFactor::new(
-        1f64 / M,
-        c.powi(2) / (G*M),
-        c.powi(3) / (G*M),
-    );
+    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
 
     let apr_data = Matrix::read("data/APR_EOS_Acc_Fe.dat", false, ' ').expect("Can't read APR");
-    let apr_crust = Matrix::read("data/APR_EOS_Acc_Fe_crust.dat", false, ' ').expect("Can't read crust");
+    let apr_crust =
+        Matrix::read("data/APR_EOS_Acc_Fe_crust.dat", false, ' ').expect("Can't read crust");
 
-    let rho = apr_data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-    let p = apr_data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
-    let rho_crust = apr_crust.col(0).fmap(|x| convert(x, Density, cgs_to_geom).log10());
-    let p_crust = apr_crust.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom).log10());
+    let rho = apr_data
+        .col(0)
+        .fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let p = apr_data
+        .col(1)
+        .fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+    let rho_crust = apr_crust
+        .col(0)
+        .fmap(|x| convert(x, Density, cgs_to_geom).log10());
+    let p_crust = apr_crust
+        .col(1)
+        .fmap(|x| convert(x, Pressure, cgs_to_geom).log10());
 
     rho.len().print();
     p.len().print();
@@ -32,14 +37,16 @@ fn main() {
     let data_crust = hstack!(rho_crust.clone(), p_crust.clone());
 
     let mut opt = Optimizer::new(data, polytrope);
-    let param = opt.set_init_param(kg.clone())
+    let param = opt
+        .set_init_param(kg.clone())
         .set_method(LevenbergMarquardt)
         .set_max_iter(100)
         .optimize();
     param.print();
 
     let mut opt_crust = Optimizer::new(data_crust, polytrope);
-    let param_crust = opt_crust.set_init_param(kg.clone())
+    let param_crust = opt_crust
+        .set_init_param(kg.clone())
         .set_method(LevenbergMarquardt)
         .set_max_iter(100)
         .optimize();
@@ -58,7 +65,8 @@ fn main() {
         .set_path("figure/APR/apr_fit.png")
         .set_legend(vec!["APR", "fit"])
         .set_marker(vec![Point, Line])
-        .savefig().expect("Can't draw a plot");
+        .savefig()
+        .expect("Can't draw a plot");
 
     let mut plot = Plot2D::new();
     plot.set_domain(rho_crust)
@@ -70,13 +78,12 @@ fn main() {
         .set_path("figure/APR/apr_crust_fit.png")
         .set_legend(vec!["APR", "fit"])
         .set_marker(vec![Point, Line])
-        .savefig().expect("Can't draw a plot");
+        .savefig()
+        .expect("Can't draw a plot");
 }
 
 fn polytrope(rho: &Vec<f64>, kr: Vec<Number>) -> Vec<Number> {
     let k = kr[0];
     let g = kr[1];
-    rho.clone().into_iter()
-        .map(|x| k.log10() + g * x)
-        .collect()
+    rho.clone().into_iter().map(|x| k.log10() + g * x).collect()
 }
