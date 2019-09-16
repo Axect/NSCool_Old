@@ -1,4 +1,4 @@
 extern crate peroxide;
 
 pub mod neutrino;
-pub mod tov;
+pub mod structure;
