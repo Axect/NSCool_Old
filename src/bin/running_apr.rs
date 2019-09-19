@@ -103,6 +103,7 @@ fn main() {
     }
 }
 
+#[allow(unused_mut)]
 pub fn tov_polytrope(st: &mut State<f64>) {
     let r = st.param;
     let xs = &st.value; // m, rho, p
@@ -125,6 +126,7 @@ pub fn tov_polytrope(st: &mut State<f64>) {
     }
 }
 
+#[allow(unused_mut)]
 pub fn tov_polytrope_crust(st: &mut State<f64>) {
     let r = st.param;
     let xs = &st.value; // m, rho, p

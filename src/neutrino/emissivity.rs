@@ -1,4 +1,5 @@
 extern crate peroxide;
+#[allow(unused_imports)]
 use peroxide::*;
 extern crate natural_unit;
 use natural_unit::CONSTANT_CGS;

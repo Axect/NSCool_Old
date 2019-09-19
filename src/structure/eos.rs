@@ -1,4 +1,5 @@
-use peroxide::{Matrix, Number, ExpLogOps, PowOps, zeros_shape, MutMatrix, C};
+#[allow(unused_imports)]
+use peroxide::*;
 use natural_unit::{CONSTANT_CGS, ConversionFactor, convert};
 use natural_unit::Dimension::{Density, Pressure};
 
@@ -34,35 +35,67 @@ pub fn load_table(eos: EOSModel) -> Matrix {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
-pub struct Polytrope {
-    K: f64,
-    Gamma: f64,
-}
-
 #[derive(Debug, Clone)]
 pub struct PiecewisePolytrope {
-    interval: Vec<f64>,
-    polytropes: Vec<Polytrope>,
+    pub log_interval: Vec<f64>,
+    pub interval: Vec<f64>,
+    pub param: Vec<f64>,
 }
 
-//pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
-//    // Define new unit (c=G=M=1)
-//    let c = CONSTANT_CGS.c;
-//    let G = CONSTANT_CGS.G;
-//    let M = CONSTANT_CGS.m_solar;
-//    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
-//
-//    let rho = data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-//    let p = data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
-//
-//    let kgs = vec![0f64; pieces + 1];
-//    let new_data = hstack!(rho.clone(), p.clone());
-//
-//    let mut ics = vec![0usize; pieces - 1];
-//
-//
-//}
+impl PiecewisePolytrope {
+    pub fn extract_k_gamma(&self) -> Vec<(f64, f64)> {
+        let ks = vec![0f64; self.log_interval.len() + 1];
+        let gs = vec![0f64; ks.len()];
+        unimplemented!();
+    }
+}
+
+#[allow(non_snake_case)]
+pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
+    // Define new unit (c=G=M=1)
+    let c = CONSTANT_CGS.c;
+    let G = CONSTANT_CGS.G;
+    let M = CONSTANT_CGS.m_solar;
+    let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
+
+    // Convert unit
+    let log_rho = data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let log_p = data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+
+    let kgs = vec![2f64; pieces + 1];
+    let new_data = hstack!(log_rho.clone(), log_p.clone());
+
+    let ics_vec = iter_candidate(log_rho.len(), pieces - 1);
+
+    let mut params: Vec<f64> = kgs.clone();
+    let mut index: Vec<usize> = Vec::with_capacity(pieces - 1);
+    let mut rss_error = std::f64::MAX;
+
+    for ics in ics_vec {
+                let mut opt = Optimizer::new(new_data.clone(), |rho, kr| piecewise_polytrope(rho, kr, ics.clone()));
+        let param = opt
+            .set_init_param(kgs.clone())
+            .set_method(LevenbergMarquardt)
+            .set_max_iter(100)
+            .optimize();
+        let err = opt.get_error();
+        if err < rss_error {
+            rss_error = err;
+            index = ics.clone();
+            params = param;
+        }
+    }
+
+    
+    let log_interval: Vec<f64> = index.into_iter().map(|i| log_rho[i]).collect();
+    let interval = log_interval.fmap(|x| 10f64.powf(x));
+
+    PiecewisePolytrope {
+        log_interval,
+        interval,
+        param: params,
+    }
+}
 
 fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>, ics: Vec<usize>) -> Vec<Number> {
     let k0 = kr[0];
@@ -111,11 +144,11 @@ pub fn iter_candidate(n: usize, r: usize) -> Vec<Vec<usize>> {
         if curr[j] < n-1 {
             curr[j] += 1;
         } else {
-            while j > 0 && curr[j] >= n-1 {
+            while j > 0 && curr[j] >= n - r + j {
                 j -= 1;
             }
             // Escape
-            if j == 0 && curr[0] >= n-1 {
+            if j == 0 && curr[0] >= n - r {
                 break;
             }
             curr[j] += 1;

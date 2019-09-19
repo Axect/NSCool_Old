@@ -11,4 +11,4 @@ rayon = "1"
 
 [dependencies.peroxide]
 version = "0.16"
-features = ["plot"]
+features = ["oxidize", "plot"]
