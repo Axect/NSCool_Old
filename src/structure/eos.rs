@@ -13,7 +13,7 @@ pub enum EOSModel {
 pub fn load_table(eos: EOSModel) -> Matrix {
     match eos {
         EOSModel::APR => {
-            let m = Matrix::read("data/Manufactured/APR.csv", true, ',').expect("Can't read APR");
+            let m = Matrix::read("./data/Manufactured/APR.csv", true, ',').expect("Can't read APR");
             let mut n = zeros_shape(m.row, m.col, m.shape);
             for i in 0 .. m.row {
                 unsafe {
@@ -27,10 +27,10 @@ pub fn load_table(eos: EOSModel) -> Matrix {
             n
         }
         EOSModel::FPS => {
-            Matrix::read("data/Manufactured/FPS.csv", true, ',').expect("Can't read FPS")
+            Matrix::read("./data/Manufactured/FPS.csv", true, ',').expect("Can't read FPS")
         }
         EOSModel::SLy4 => {
-            Matrix::read("data/Manufactured/SLY4.csv", true, ',').expect("Can't read SLy4")
+            Matrix::read("./data/Manufactured/SLY4.csv", true, ' ').expect("Can't read SLy4")
         }
     }
 }
@@ -44,9 +44,33 @@ pub struct PiecewisePolytrope {
 
 impl PiecewisePolytrope {
     pub fn extract_k_gamma(&self) -> Vec<(f64, f64)> {
-        let ks = vec![0f64; self.log_interval.len() + 1];
-        let gs = vec![0f64; ks.len()];
-        unimplemented!();
+        let mut ks = vec![0f64; self.log_interval.len() + 1];
+        let mut gs = vec![0f64; ks.len()];
+        
+        ks[0] = self.param[0];
+        for (dst, src) in gs.iter_mut().zip(&self.param[1..]) {
+            *dst = *src;
+        }
+
+        for i in 1 .. ks.len() {
+            ks[i] = ks[i-1] + (gs[i] - gs[i-1]) * self.log_interval[i-1];
+        }
+
+        ks.into_iter().zip(gs).collect()
+    }
+
+    pub fn get_log_interval<'a>(&'a self) -> &'a Vec<f64> {
+        &self.log_interval
+    }
+
+    pub fn get_interval<'a>(&'a self) -> &'a Vec<f64> {
+        &self.interval
+    } 
+
+    pub fn to_plot(&self, path: &str) {
+        let mut plt = Plot2D::new();
+
+        unimplemented!()
     }
 }
 
