@@ -133,7 +133,6 @@ fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>, ics: Vec<usize>) -> Vec<
     let k0 = kr[0];
     let gs = kr.into_iter().skip(1).collect::<Vec<Number>>();
     let rhos = ics.into_iter().map(|i| rho[i]).collect::<Vec<f64>>();
-    rhos.print();
     let mut ks: Vec<Number> = vec![k0];
     for i in 0 .. gs.len() - 1 {
         let k = ks[i];
