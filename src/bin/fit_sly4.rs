@@ -6,7 +6,7 @@ use peroxide::*;
 use NSCool::structure::eos::{load_table, EOSModel};
 
 const RHO: [f64; 3] = [-11.7720, -6.8641, -4.2205];
-const KG: [(f64, f64); 4] = [(373981.6209505603, 1.8485919406272393), (373987.6615998343, 1.3354533321504343), (373989.94705683185, 1.002496127574712), (373984.6622809677, 2.2546726199881117)];
+const KG: [(f64, f64); 4] = [(373981.6209505603, 1.8485919406272393), (0.34056576252855564, 1.3354533321504343), (0.0017649970672523633, 1.002496127574712), (340.0320488034904, 2.2546726199881117)];
 
 #[allow(non_snake_case)]
 fn main() {
@@ -41,7 +41,7 @@ fn main() {
         .set_ylabel("$\\log P$")
         .set_path("figure/SLy/sly4_fit_bruteforce.png")
         .set_legend(vec!["SLy4", "fit"])
-        .set_marker(vec![Point, Point])
+        .set_marker(vec![Point, Line])
         .savefig()
         .expect("Can't draw a plot");
 }
