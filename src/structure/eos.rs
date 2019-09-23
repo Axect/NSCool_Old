@@ -79,8 +79,8 @@ pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
     let cgs_to_geom = ConversionFactor::new(1f64 / M, c.powi(2) / (G * M), c.powi(3) / (G * M));
 
     // Convert unit
-    let log_rho = data.col(0).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
-    let log_p = data.col(1).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
+    let log_rho = data.col(1).fmap(|x| convert(x, Density, cgs_to_geom.clone()).log10());
+    let log_p = data.col(2).fmap(|x| convert(x, Pressure, cgs_to_geom.clone()).log10());
 
     let kgs = vec![2f64; pieces + 1];
     let new_data = hstack!(log_rho.clone(), log_p.clone());
