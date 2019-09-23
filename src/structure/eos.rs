@@ -50,12 +50,13 @@ impl PiecewisePolytrope {
         let mut gs = vec![0f64; ks.len()];
         
         ks[0] = self.param[0];
-        for (dst, src) in gs.iter_mut().zip(&self.param[1..]) {
-            *dst = *src;
+        for i in 1 .. self.param.len() {
+            gs[i-1] = self.param[i];    
         }
 
         for i in 1 .. ks.len() {
-            ks[i] = ks[i-1] + (gs[i] - gs[i-1]) * self.log_interval[i-1];
+            let rhoi_1 = self.interval[i-1];
+            ks[i] = ks[i-1] * rhoi_1.powf(gs[i-1]) / rhoi_1.powf(gs[i]);
         }
 
         ks.into_iter().zip(gs).collect()
@@ -132,6 +133,7 @@ fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>, ics: Vec<usize>) -> Vec<
     let k0 = kr[0];
     let gs = kr.into_iter().skip(1).collect::<Vec<Number>>();
     let rhos = ics.into_iter().map(|i| rho[i]).collect::<Vec<f64>>();
+    rhos.print();
     let mut ks: Vec<Number> = vec![k0];
     for i in 0 .. gs.len() - 1 {
         let k = ks[i];
