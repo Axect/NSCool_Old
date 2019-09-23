@@ -1,5 +1,6 @@
 #[allow(unused_imports)]
 use peroxide::*;
+use rayon::prelude::*;
 use natural_unit::{CONSTANT_CGS, ConversionFactor, convert};
 use natural_unit::Dimension::{Density, Pressure};
 
@@ -35,6 +36,7 @@ pub fn load_table(eos: EOSModel) -> Matrix {
     }
 }
 
+
 #[derive(Debug, Clone)]
 pub struct PiecewisePolytrope {
     pub log_interval: Vec<f64>,
@@ -66,12 +68,6 @@ impl PiecewisePolytrope {
     pub fn get_interval<'a>(&'a self) -> &'a Vec<f64> {
         &self.interval
     } 
-
-    pub fn to_plot(&self, path: &str) {
-        let mut plt = Plot2D::new();
-
-        unimplemented!()
-    }
 }
 
 #[allow(non_snake_case)]
@@ -89,30 +85,41 @@ pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
     let kgs = vec![2f64; pieces + 1];
     let new_data = hstack!(log_rho.clone(), log_p.clone());
 
+    // Generate whole candidates
     let ics_vec = iter_candidate(log_rho.len(), pieces - 1);
 
-    let mut params: Vec<f64> = kgs.clone();
-    let mut index: Vec<usize> = Vec::with_capacity(pieces - 1);
-    let mut rss_error = std::f64::MAX;
 
-    for ics in ics_vec {
-                let mut opt = Optimizer::new(new_data.clone(), |rho, kr| piecewise_polytrope(rho, kr, ics.clone()));
-        let param = opt
-            .set_init_param(kgs.clone())
-            .set_method(LevenbergMarquardt)
-            .set_max_iter(100)
-            .optimize();
-        let err = opt.get_error();
-        if err < rss_error {
-            rss_error = err;
-            index = ics.clone();
-            params = param;
-        }
-    }
-
+    let results = ics_vec.into_par_iter()
+        .map(|ics| {
+            let mut opt = Optimizer::new(new_data.clone(), |rho, kr| piecewise_polytrope(rho, kr, ics.clone()));
+            let param = opt
+                .set_init_param(kgs.clone())
+                .set_method(LevenbergMarquardt)
+                .set_max_iter(100)
+                .optimize();
+            let err = opt.get_error();
+            err.print();
+            (err, ics, param)
+            //if err < rss_error {
+            //    rss_error = err;
+            //    index = ics.clone();
+            //    params = param;
+            //}
+        })
+        .reduce_with(|a, b| {
+            if a.0 <= b.0 {
+                a
+            } else {
+                b
+            }
+        }).unwrap();
+    
+    let (rss_error, index, params) = results;
     
     let log_interval: Vec<f64> = index.into_iter().map(|i| log_rho[i]).collect();
     let interval = log_interval.fmap(|x| 10f64.powf(x));
+
+    rss_error.print();
 
     PiecewisePolytrope {
         log_interval,
