@@ -1,5 +1,6 @@
 #[allow(unused_imports)]
 use peroxide::*;
+use peroxide::Number::F;
 use rayon::prelude::*;
 use natural_unit::{CONSTANT_CGS, ConversionFactor, convert};
 use natural_unit::Dimension::{Density, Pressure};
@@ -129,7 +130,7 @@ pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
     }
 }
 
-fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>, ics: Vec<usize>) -> Vec<Number> {
+fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>, ics: Vec<usize>) -> Option<Vec<Number>> {
     let k0 = kr[0];
     let gs = kr.into_iter().skip(1).collect::<Vec<Number>>();
     let rhos = ics.into_iter().map(|i| rho[i]).collect::<Vec<f64>>();
@@ -152,19 +153,27 @@ fn piecewise_polytrope(rho: &Vec<f64>, kr: Vec<Number>, ics: Vec<usize>) -> Vec<
             let rho_j = rhos[j];
             let g_j = gs[j];
             let k_j = ks[j];
+
+            if k_j <= F(0f64) {
+                return None;
+            }
+
             if x <= rho_j {
                 result[i] = k_j.log10() + g_j * x;
                 break;
             } else {
                 j += 1;
                 if j >= rhos.len() {
+                    if ks[j] <= F(0f64) {
+                        return None;
+                    }
                     result[i] = ks[j].log10() + gs[j] * x;
                     break;
                 }
             }
         }
     }
-    result
+    Some(result)
 }
 
 pub fn iter_candidate(n: usize, r: usize) -> Vec<Vec<usize>> {
