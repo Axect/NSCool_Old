@@ -99,7 +99,6 @@ pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
                 .set_max_iter(100)
                 .optimize();
             let err = opt.get_error();
-            err.print();
             (err, ics, param)
             //if err < rss_error {
             //    rss_error = err;
