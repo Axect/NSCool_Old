@@ -10,5 +10,5 @@ inline-python = "0.3"
 rayon = "1"
 
 [dependencies.peroxide]
-version = "0.16"
-features = ["oxidize", "plot"]
+version = "0.17"
+features = ["oxidize", "plot", "dataframe"]

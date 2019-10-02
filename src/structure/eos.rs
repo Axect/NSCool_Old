@@ -43,6 +43,7 @@ pub struct PiecewisePolytrope {
     pub log_interval: Vec<f64>,
     pub interval: Vec<f64>,
     pub param: Vec<f64>,
+    pub rss: f64,
 }
 
 impl PiecewisePolytrope {
@@ -70,6 +71,10 @@ impl PiecewisePolytrope {
     pub fn get_interval<'a>(&'a self) -> &'a Vec<f64> {
         &self.interval
     } 
+
+    pub fn get_rss(&self) -> f64 {
+        self.rss
+    }
 }
 
 #[allow(non_snake_case)]
@@ -126,6 +131,7 @@ pub fn piecewise_poly_fit(data: &Matrix, pieces: usize) -> PiecewisePolytrope {
         log_interval,
         interval,
         param: params,
+        rss: rss_error,
     }
 }
 
